@@ -13,7 +13,7 @@ export default function Footer() {
         </div>
 
         {/* Right: links */}
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
           <a
             href="https://github.com/hsingla378/cognitivemode"
             target="_blank"
@@ -24,12 +24,21 @@ export default function Footer() {
           </a>
           <span className="h-3 w-px bg-[--color-border]" />
           <a
-            href="https://x.com"
+            href="https://www.linkedin.com/in/hsingla378/"
             target="_blank"
             rel="noreferrer"
             className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
           >
-            X / Twitter
+            LinkedIn
+          </a>
+          <span className="h-3 w-px bg-[--color-border]" />
+          <a
+            href="https://www.himanshusingla.com/"
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
+          >
+            Portfolio
           </a>
           <span className="h-3 w-px bg-[--color-border]" />
           <a
