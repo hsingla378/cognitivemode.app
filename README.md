@@ -64,3 +64,12 @@ npm run dev:web
 
 This starts the Next.js site from `apps/web`.
 
+## Roadmap
+
+- **Phase 1–5 (Web Base)**: Ship landing page, core product narrative, interactive extension simulator UX, and performance polish.
+- **Phase 6–12 (Extension Engine)**: Build the core browser extension wrapper (Manifest V3, DOM content scripts, friction layout injection, local storage state tracking).
+- **Phase 13–15 (Launch Prep)**: Polish deep linking/onboarding between the web app and extension, finalize store graphic assets, and publish to community channels.
+- **Post-Sprint Features**:
+  - Publish extension package natively to the Chrome Web Store.
+  - Engineer a client-side analytics dashboard utilizing IndexedDB for local cognitive logs.
+  - Expand targeted selectors for additional AI engineering interfaces.
