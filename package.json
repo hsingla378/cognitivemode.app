@@ -1,6 +1,9 @@
 {
   "name": "cognitivemode-root",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "workspaces": [
     "apps/*"
   ],
