@@ -29,16 +29,8 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
   const visible = pending !== null && !hidden
 
   useEffect(() => {
-    if (!pending) {
-      setHypothesis('')
-      setTried('')
-      setSecondsLeft(COUNTDOWN_SECONDS)
-      setSubmitting(false)
-      setHidden(false)
-      return
-    }
+    if (!pending) return
 
-    setSecondsLeft(COUNTDOWN_SECONDS)
     const intervalId = window.setInterval(() => {
       setSecondsLeft((prev) => (prev <= 1 ? 0 : prev - 1))
     }, 1000)

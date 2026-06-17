@@ -18,8 +18,17 @@ export function mountOverlay(options: MountOptions): OverlayController {
 
   const host = document.createElement('div')
   host.id = HOST_ID
-  host.style.all = 'initial'
-  document.body.appendChild(host)
+  host.style.cssText =
+    'position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; pointer-events: none !important;'
+
+  const attachHost = () => {
+    const container = document.documentElement
+    if (host.parentElement !== container) {
+      container.appendChild(host)
+    }
+  }
+
+  attachHost()
 
   const shadow = host.attachShadow({ mode: 'open' })
 
@@ -32,21 +41,26 @@ export function mountOverlay(options: MountOptions): OverlayController {
   shadow.appendChild(app)
 
   let pending: PendingSubmit | null = null
+  let overlayVersion = 0
 
   const root = createRoot(app)
   const render = () => {
+    attachHost()
     root.render(
       <FrictionOverlay
+        key={overlayVersion}
         pending={pending}
         onSubmit={async (data) => {
           await options.onSubmit(data)
           window.setTimeout(() => {
             pending = null
+            overlayVersion += 1
             render()
           }, FADE_MS)
         }}
         onDismiss={() => {
           pending = null
+          overlayVersion += 1
           options.onDismiss()
           render()
         }}
@@ -54,15 +68,22 @@ export function mountOverlay(options: MountOptions): OverlayController {
     )
   }
 
+  const observer = new MutationObserver(attachHost)
+  observer.observe(document.documentElement, { childList: true })
+
   render()
 
   return {
     show(nextPending) {
+      attachHost()
       pending = nextPending
+      overlayVersion += 1
       render()
     },
     hide() {
+      attachHost()
       pending = null
+      overlayVersion += 1
       render()
     },
   }
