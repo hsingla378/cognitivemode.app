@@ -1,12 +1,13 @@
 import { createRoot } from 'react-dom/client'
-import Overlay from './Overlay'
+import FrictionOverlay from './Overlay'
+import type { HypothesisGateData } from './Overlay'
 import styles from './content.css?inline'
 import type { OverlayController, PendingSubmit } from './types'
 
 const HOST_ID = 'cognitive-mode-root'
 
 interface MountOptions {
-  onUnlock: (hypothesis: string, tried: string) => Promise<void>
+  onSubmit: (data: HypothesisGateData) => void | Promise<void>
   onDismiss: () => void
 }
 
@@ -34,10 +35,10 @@ export function mountOverlay(options: MountOptions): OverlayController {
   const root = createRoot(app)
   const render = () => {
     root.render(
-      <Overlay
+      <FrictionOverlay
         pending={pending}
-        onUnlock={async (hypothesis, tried) => {
-          await options.onUnlock(hypothesis, tried)
+        onSubmit={async (data) => {
+          await options.onSubmit(data)
           pending = null
           render()
         }}

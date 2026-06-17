@@ -7,7 +7,7 @@ let pendingSubmit: PendingSubmit | null = null
 
 function init() {
   const overlay = mountOverlay({
-    async onUnlock(hypothesis, tried) {
+    async onSubmit({ hypothesis, tried }) {
       await saveEntry(hypothesis, tried)
       pendingSubmit?.trigger()
       pendingSubmit = null
