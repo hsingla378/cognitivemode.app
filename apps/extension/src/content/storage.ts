@@ -2,14 +2,14 @@ import type { CognitiveEntry } from './types'
 
 const STORAGE_KEY = 'cognitive_entries'
 
-export async function saveEntry(
+export async function saveCognitiveLog(
   hypothesis: string,
   tried: string,
 ): Promise<void> {
   const entry: CognitiveEntry = {
     hypothesis,
     tried,
-    host: location.hostname,
+    domain: location.hostname,
     timestamp: Date.now(),
   }
 

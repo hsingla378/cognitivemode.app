@@ -96,10 +96,7 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
 
   const intercept = (pending: PendingSubmit) => {
     activeInput = pending.input
-    onIntercept({
-      input: pending.input,
-      trigger: () => unlock(pending.trigger),
-    })
+    onIntercept(pending)
   }
 
   const handleKeyDown = (event: KeyboardEvent) => {

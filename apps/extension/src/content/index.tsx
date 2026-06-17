@@ -1,6 +1,6 @@
 import { initInterceptor } from './interceptor'
 import { mountOverlay } from './mount'
-import { saveEntry } from './storage'
+import { saveCognitiveLog } from './storage'
 import type { PendingSubmit } from './types'
 
 let pendingSubmit: PendingSubmit | null = null
@@ -8,16 +8,18 @@ let pendingSubmit: PendingSubmit | null = null
 function init() {
   const overlay = mountOverlay({
     async onSubmit({ hypothesis, tried }) {
-      await saveEntry(hypothesis, tried)
-      pendingSubmit?.trigger()
+      const submit = pendingSubmit
       pendingSubmit = null
+
+      await saveCognitiveLog(hypothesis, tried)
+      interceptor.unlock(submit?.trigger)
     },
     onDismiss() {
       pendingSubmit = null
     },
   })
 
-  initInterceptor((pending) => {
+  const interceptor = initInterceptor((pending) => {
     pendingSubmit = pending
     overlay.show(pending)
   })

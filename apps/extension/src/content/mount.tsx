@@ -5,6 +5,7 @@ import styles from './content.css?inline'
 import type { OverlayController, PendingSubmit } from './types'
 
 const HOST_ID = 'cognitive-mode-root'
+const FADE_MS = 500
 
 interface MountOptions {
   onSubmit: (data: HypothesisGateData) => void | Promise<void>
@@ -39,8 +40,10 @@ export function mountOverlay(options: MountOptions): OverlayController {
         pending={pending}
         onSubmit={async (data) => {
           await options.onSubmit(data)
-          pending = null
-          render()
+          window.setTimeout(() => {
+            pending = null
+            render()
+          }, FADE_MS)
         }}
         onDismiss={() => {
           pending = null

@@ -1,7 +1,7 @@
 export interface CognitiveEntry {
   hypothesis: string
   tried: string
-  host: string
+  domain: string
   timestamp: number
 }
 
