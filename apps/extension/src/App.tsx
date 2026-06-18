@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react'
-import { getCognitiveLogs, getStats, type Stats } from './content/storage'
+import {
+  getCognitiveLogs,
+  getSettings,
+  getStats,
+  saveSettings,
+  type Stats,
+} from './content/storage'
 import type { CognitiveEntry } from './content/types'
 import './App.css'
 
 const HYPOTHESIS_SNIPPET_LENGTH = 72
+const FRICTION_DELAY_MIN = 5
+const FRICTION_DELAY_MAX = 60
+const FRICTION_DELAY_DEFAULT = 15
 
 function truncateHypothesis(text: string): string {
   const trimmed = text.trim()
@@ -23,16 +32,24 @@ function formatTimestamp(timestamp: number): string {
 function App() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentLogs, setRecentLogs] = useState<CognitiveEntry[]>([])
+  const [frictionDelay, setFrictionDelay] = useState(FRICTION_DELAY_DEFAULT)
 
   useEffect(() => {
     let cancelled = false
 
     async function loadDashboard() {
-      const [nextStats, logs] = await Promise.all([getStats(), getCognitiveLogs()])
+      const [nextStats, logs, settings] = await Promise.all([
+        getStats(),
+        getCognitiveLogs(),
+        getSettings(),
+      ])
       if (cancelled) return
 
       setStats(nextStats)
       setRecentLogs(logs.slice(-3).reverse())
+      setFrictionDelay(
+        Math.min(FRICTION_DELAY_MAX, Math.max(FRICTION_DELAY_MIN, settings.countdownDuration)),
+      )
     }
 
     void loadDashboard()
@@ -41,6 +58,12 @@ function App() {
       cancelled = true
     }
   }, [])
+
+  async function handleFrictionDelayChange(value: number) {
+    const clamped = Math.min(FRICTION_DELAY_MAX, Math.max(FRICTION_DELAY_MIN, value))
+    setFrictionDelay(clamped)
+    await saveSettings({ countdownDuration: clamped })
+  }
 
   return (
     <div className="flex h-96 w-80 flex-col bg-zinc-950 text-zinc-100">
@@ -99,6 +122,29 @@ function App() {
           </ul>
         </section>
       </main>
+
+      <footer className="border-t border-zinc-800 px-4 py-3">
+        <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+          Settings
+        </h2>
+        <label htmlFor="friction-delay" className="flex items-center justify-between gap-3">
+          <span className="text-xs text-zinc-400">Friction Delay</span>
+          <span className="font-mono text-xs tabular-nums text-zinc-200">{frictionDelay}s</span>
+        </label>
+        <input
+          id="friction-delay"
+          type="range"
+          min={FRICTION_DELAY_MIN}
+          max={FRICTION_DELAY_MAX}
+          step={1}
+          value={frictionDelay}
+          onChange={(e) => void handleFrictionDelayChange(Number(e.target.value))}
+          className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-800 accent-emerald-500"
+        />
+        <p className="mt-1.5 text-[10px] text-zinc-600">
+          {FRICTION_DELAY_MIN}–{FRICTION_DELAY_MAX} seconds before unlock
+        </p>
+      </footer>
     </div>
   )
 }

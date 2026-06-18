@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { getSettings } from './storage'
 import type { PendingSubmit } from './types'
 
-const COUNTDOWN_SECONDS = 15
+const DEFAULT_COUNTDOWN_SECONDS = 15
 const MIN_CHARS = 10
 
 export interface HypothesisGateData {
@@ -18,7 +19,8 @@ interface FrictionOverlayProps {
 export default function FrictionOverlay({ pending, onSubmit, onDismiss }: FrictionOverlayProps) {
   const [hypothesis, setHypothesis] = useState('')
   const [tried, setTried] = useState('')
-  const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS)
+  const [countdownDuration, setCountdownDuration] = useState(DEFAULT_COUNTDOWN_SECONDS)
+  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_COUNTDOWN_SECONDS)
   const [submitting, setSubmitting] = useState(false)
   const [hidden, setHidden] = useState(false)
 
@@ -29,14 +31,30 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
   const visible = pending !== null && !hidden
 
   useEffect(() => {
+    let cancelled = false
+
+    void getSettings().then((settings) => {
+      if (cancelled) return
+      setCountdownDuration(settings.countdownDuration)
+      setSecondsLeft(settings.countdownDuration)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
     if (!pending) return
+
+    setSecondsLeft(countdownDuration)
 
     const intervalId = window.setInterval(() => {
       setSecondsLeft((prev) => (prev <= 1 ? 0 : prev - 1))
     }, 1000)
 
     return () => clearInterval(intervalId)
-  }, [pending])
+  }, [pending, countdownDuration])
 
   async function handleUnlock() {
     if (!canUnlock) return
@@ -49,7 +67,8 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     }
   }
 
-  const countdownProgress = ((COUNTDOWN_SECONDS - secondsLeft) / COUNTDOWN_SECONDS) * 100
+  const countdownProgress =
+    ((countdownDuration - secondsLeft) / countdownDuration) * 100
 
   return (
     <div
