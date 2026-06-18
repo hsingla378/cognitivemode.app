@@ -1,36 +1,39 @@
 import type { PendingSubmit } from './types'
 
-const PROMPT_INPUT_SELECTORS = [
-  '#prompt-textarea',
-  '[data-testid="prompt-textarea"]',
-  'div#prompt-textarea[contenteditable="true"]',
-  'div.ProseMirror[contenteditable="true"]',
-  'div[contenteditable="true"][data-placeholder]',
-  'div[role="textbox"][contenteditable="true"]',
-  'textarea[placeholder*="Message"]',
-  'textarea[placeholder*="message"]',
-  '[data-testid="composer-textarea"]',
-  'rich-textarea textarea',
-]
+export interface PlatformSelectors {
+  input: string
+  button: string
+}
 
-const SEND_BUTTON_SELECTORS = [
-  '[data-testid="send-button"]',
-  '[data-testid="composer-send-button"]',
-  'button[aria-label="Send prompt"]',
-  'button[aria-label="Send message"]',
-  'button[aria-label="Send Message"]',
-  'button[aria-label*="Send"]',
-  'button[aria-label*="send"]',
-]
-
-const COMPOSER_SELECTOR = PROMPT_INPUT_SELECTORS.join(', ')
-const SEND_SELECTOR = SEND_BUTTON_SELECTORS.join(', ')
+export const platformSelectors: Record<string, PlatformSelectors> = {
+  'chatgpt.com': {
+    input: '#prompt-textarea',
+    button: 'button[data-testid="send-button"]',
+  },
+  'claude.ai': {
+    input: 'div[contenteditable="true"].ProseMirror',
+    button: 'button[aria-label="Send Message"]',
+  },
+  'v0.dev': {
+    input: 'textarea[name="prompt"]',
+    button: 'button[type="submit"]',
+  },
+}
 
 export interface InterceptorHandle {
   /** Temporarily bypass interception so a pending message can be sent. */
   unlock: (submit?: () => void) => void
   /** Tear down listeners and observers. */
   destroy: () => void
+}
+
+function resolvePlatform(hostname: string): PlatformSelectors | null {
+  for (const [host, config] of Object.entries(platformSelectors)) {
+    if (hostname === host || hostname.endsWith(`.${host}`)) {
+      return config
+    }
+  }
+  return null
 }
 
 function isVisible(element: HTMLElement): boolean {
@@ -50,27 +53,31 @@ function hasPromptContent(input: HTMLElement): boolean {
   return getComposerText(input).length > 0
 }
 
-function getComposerFromTarget(target: EventTarget | null): HTMLElement | null {
+function getComposerFromTarget(
+  target: EventTarget | null,
+  inputSelector: string,
+): HTMLElement | null {
   if (!(target instanceof HTMLElement)) return null
-  if (target.matches(COMPOSER_SELECTOR)) return target
-  return target.closest<HTMLElement>(COMPOSER_SELECTOR)
+  if (target.matches(inputSelector)) return target
+  return target.closest<HTMLElement>(inputSelector)
 }
 
-function findPromptInput(): HTMLElement | null {
-  const focused = getComposerFromTarget(document.activeElement)
+function findPromptInput(inputSelector: string): HTMLElement | null {
+  const focused = getComposerFromTarget(document.activeElement, inputSelector)
   if (focused && isVisible(focused)) return focused
 
-  for (const selector of PROMPT_INPUT_SELECTORS) {
-    const elements = Array.from(document.querySelectorAll<HTMLElement>(selector))
-    for (const element of elements) {
-      if (isVisible(element)) return element
-    }
+  const elements = Array.from(document.querySelectorAll<HTMLElement>(inputSelector))
+  for (const element of elements) {
+    if (isVisible(element)) return element
   }
 
   return null
 }
 
-function findSendButton(input: HTMLElement | null): HTMLElement | null {
+function findSendButton(
+  input: HTMLElement | null,
+  buttonSelector: string,
+): HTMLElement | null {
   const roots = [
     input?.closest('form'),
     input?.closest('[class*="composer"]'),
@@ -81,11 +88,11 @@ function findSendButton(input: HTMLElement | null): HTMLElement | null {
 
   for (const root of roots) {
     if (!root) continue
-    const button = root.querySelector<HTMLElement>(SEND_SELECTOR)
+    const button = root.querySelector<HTMLElement>(buttonSelector)
     if (button) return button
   }
 
-  return document.querySelector<HTMLElement>(SEND_SELECTOR)
+  return document.querySelector<HTMLElement>(buttonSelector)
 }
 
 function isSendDisabled(button: HTMLElement): boolean {
@@ -93,8 +100,11 @@ function isSendDisabled(button: HTMLElement): boolean {
   return button.getAttribute('aria-disabled') === 'true'
 }
 
-function createPendingSubmit(input: HTMLElement): PendingSubmit {
-  const sendButton = findSendButton(input)
+function createPendingSubmit(
+  input: HTMLElement,
+  buttonSelector: string,
+): PendingSubmit {
+  const sendButton = findSendButton(input, buttonSelector)
 
   return {
     input,
@@ -116,7 +126,18 @@ function createPendingSubmit(input: HTMLElement): PendingSubmit {
   }
 }
 
+const noopHandle: InterceptorHandle = {
+  unlock: (submit?: () => void) => {
+    submit?.()
+  },
+  destroy: () => {},
+}
+
 export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): InterceptorHandle {
+  const platform = resolvePlatform(window.location.hostname)
+  if (!platform) return noopHandle
+
+  const { input: inputSelector, button: buttonSelector } = platform
   let isUnlocked = false
 
   const unlock = (submit?: () => void) => {
@@ -135,12 +156,12 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
     if (isUnlocked) return
     if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return
 
-    const input = getComposerFromTarget(event.target)
+    const input = getComposerFromTarget(event.target, inputSelector)
     if (!input || !hasPromptContent(input)) return
 
     event.preventDefault()
     event.stopImmediatePropagation()
-    intercept(createPendingSubmit(input))
+    intercept(createPendingSubmit(input, buttonSelector))
   }
 
   const handleSendClick = (event: MouseEvent) => {
@@ -149,15 +170,17 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
     const target = event.target
     if (!(target instanceof HTMLElement)) return
 
-    const button = target.closest<HTMLElement>(SEND_SELECTOR)
+    const button = target.closest<HTMLElement>(buttonSelector)
     if (!button || isSendDisabled(button)) return
 
-    const input = getComposerFromTarget(document.activeElement) ?? findPromptInput()
+    const input =
+      getComposerFromTarget(document.activeElement, inputSelector) ??
+      findPromptInput(inputSelector)
     if (!input || !hasPromptContent(input)) return
 
     event.preventDefault()
     event.stopImmediatePropagation()
-    intercept(createPendingSubmit(input))
+    intercept(createPendingSubmit(input, buttonSelector))
   }
 
   document.addEventListener('keydown', handleKeyDown, true)
