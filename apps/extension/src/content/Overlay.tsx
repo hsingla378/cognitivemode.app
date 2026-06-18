@@ -47,8 +47,6 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
   useEffect(() => {
     if (!pending) return
 
-    setSecondsLeft(countdownDuration)
-
     const intervalId = window.setInterval(() => {
       setSecondsLeft((prev) => (prev <= 1 ? 0 : prev - 1))
     }, 1000)
@@ -183,7 +181,7 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
                   hypothesisValid ? 'text-emerald-400/70' : 'text-muted/40'
                 }`}
               >
-                {hypothesis.trim().length}/{MIN_CHARS} min
+                {hypothesis.trim().length}/{MIN_CHARS} chars
               </p>
             </div>
 
@@ -207,7 +205,7 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
                   triedValid ? 'text-emerald-400/70' : 'text-muted/40'
                 }`}
               >
-                {tried.trim().length}/{MIN_CHARS} min
+                {tried.trim().length}/{MIN_CHARS} chars
               </p>
             </div>
           </div>

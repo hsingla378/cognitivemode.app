@@ -13,7 +13,7 @@ Instead of instant prompting, users are encouraged to pause, articulate hypothes
 
 This repository is a monorepo containing:
 - a marketing + onboarding website
-- an upcoming browser extension that enforces cognitive guardrails directly on AI tools
+- a browser extension workspace that enforces cognitive guardrails directly on AI tools
 
 ## Core Features
 
@@ -28,15 +28,15 @@ This repository is a monorepo containing:
 cognitivemode-app/
 ├─ apps/
 │  ├─ web/         # Next.js app (landing page + product narrative)
-│  └─ extension/   # Browser extension (planned)
+│  └─ extension/   # Manifest V3 browser extension
 ├─ package.json    # Root workspace config
 └─ README.md
 ```
 
 ### Workspace Notes
 
-- `apps/web` is the active app today (Next.js + Tailwind)
-- `apps/extension` is reserved for the upcoming browser plugin implementation
+- `apps/web` contains the landing page and interactive simulator (Next.js + Tailwind)
+- `apps/extension` contains the Manifest V3 extension, content script, overlay, popup dashboard, and local storage logic
 - Root-level npm workspaces are used for dependency and script orchestration
 
 ## Getting Started
@@ -63,6 +63,16 @@ npm run dev:web
 ```
 
 This starts the Next.js site from `apps/web`.
+
+### Build the Extension
+
+From the repo root:
+
+```bash
+npm run build:ext
+```
+
+This creates the unpacked Chrome extension in `apps/extension/dist`.
 
 ## Roadmap
 

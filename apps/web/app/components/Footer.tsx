@@ -42,10 +42,10 @@ export default function Footer() {
           </a>
           <span className="h-3 w-px bg-[--color-border]" />
           <a
-            href="#"
+            href="#extension-simulator"
             className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
           >
-            Add to Chrome
+            Try Demo
           </a>
         </div>
       </div>

@@ -27,6 +27,7 @@ const CHAT_MESSAGES = [
 ];
 
 const COUNTDOWN_START = 5;
+const MIN_REASONING_CHARS = 10;
 
 export default function ExtensionSimulator() {
   const [inputValue, setInputValue] = useState("");
@@ -40,7 +41,10 @@ export default function ExtensionSimulator() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const bothFilled = hypothesis.trim().length > 0 && tried.trim().length > 0;
+  const hypothesisLength = hypothesis.trim().length;
+  const triedLength = tried.trim().length;
+  const bothFilled =
+    hypothesisLength >= MIN_REASONING_CHARS && triedLength >= MIN_REASONING_CHARS;
   const canUnlock = countdown === 0 && bothFilled;
 
   function triggerOverlay() {
@@ -94,7 +98,6 @@ export default function ExtensionSimulator() {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
-    setCountdown(COUNTDOWN_START);
     timerRef.current = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
@@ -110,7 +113,7 @@ export default function ExtensionSimulator() {
   }, [overlayVisible]);
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-6 pb-32">
+    <section id="extension-simulator" className="mx-auto w-full max-w-5xl px-6 pb-32">
       <div className="mb-8 flex flex-col gap-2">
         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
           try it now
@@ -223,7 +226,8 @@ export default function ExtensionSimulator() {
 
             {/* Prompt: description */}
             <p className="text-xs text-muted leading-relaxed max-w-lg">
-              Before you ask the AI — articulate your thinking. Both fields required to unlock.
+              Before you ask the AI — articulate your thinking. Both fields need at least{" "}
+              {MIN_REASONING_CHARS} characters to unlock.
             </p>
 
             {/* Two text areas */}
@@ -239,6 +243,15 @@ export default function ExtensionSimulator() {
                   placeholder="I think the issue is…"
                   className="resize-none rounded-lg border border-[--color-border] bg-[rgba(255,255,255,0.04)] px-3 py-2.5 text-xs text-foreground placeholder:text-muted/40 outline-none transition focus:border-zinc-500"
                 />
+                <p
+                  className={`font-mono text-[10px] tabular-nums ${
+                    hypothesisLength >= MIN_REASONING_CHARS
+                      ? "text-emerald-400/70"
+                      : "text-muted/40"
+                  }`}
+                >
+                  {hypothesisLength}/{MIN_REASONING_CHARS} chars
+                </p>
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted/70">
@@ -251,6 +264,15 @@ export default function ExtensionSimulator() {
                   placeholder="I already checked…"
                   className="resize-none rounded-lg border border-[--color-border] bg-[rgba(255,255,255,0.04)] px-3 py-2.5 text-xs text-foreground placeholder:text-muted/40 outline-none transition focus:border-zinc-500"
                 />
+                <p
+                  className={`font-mono text-[10px] tabular-nums ${
+                    triedLength >= MIN_REASONING_CHARS
+                      ? "text-emerald-400/70"
+                      : "text-muted/40"
+                  }`}
+                >
+                  {triedLength}/{MIN_REASONING_CHARS} chars
+                </p>
               </div>
             </div>
 
@@ -260,7 +282,7 @@ export default function ExtensionSimulator() {
                 {!bothFilled && countdown > 0
                   ? "Fill both fields and wait for the timer"
                   : !bothFilled
-                  ? "Fill both fields to unlock"
+                  ? `Write ${MIN_REASONING_CHARS}+ chars in each field`
                   : countdown > 0
                   ? `${countdown}s remaining…`
                   : ""}

@@ -3,6 +3,8 @@ import type { CognitiveEntry } from './types'
 const STORAGE_KEY = 'cognitive_entries'
 const SETTINGS_KEY = 'cognitive_settings'
 const DEFAULT_COUNTDOWN_DURATION = 15
+const MIN_COUNTDOWN_DURATION = 5
+const MAX_COUNTDOWN_DURATION = 60
 const SECONDS_PER_INTERCEPTION = 15
 
 export interface Settings {
@@ -17,6 +19,11 @@ export interface Stats {
 
 const DEFAULT_SETTINGS: Settings = {
   countdownDuration: DEFAULT_COUNTDOWN_DURATION,
+}
+
+function clampCountdownDuration(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_COUNTDOWN_DURATION
+  return Math.min(MAX_COUNTDOWN_DURATION, Math.max(MIN_COUNTDOWN_DURATION, Math.round(value)))
 }
 
 export async function getCognitiveLogs(): Promise<CognitiveEntry[]> {
@@ -50,7 +57,11 @@ export async function getSettings(): Promise<Settings> {
     'countdownDuration' in stored &&
     typeof stored.countdownDuration === 'number'
   ) {
-    return { ...DEFAULT_SETTINGS, ...(stored as Settings) }
+    return {
+      ...DEFAULT_SETTINGS,
+      ...(stored as Settings),
+      countdownDuration: clampCountdownDuration(stored.countdownDuration),
+    }
   }
   return { ...DEFAULT_SETTINGS }
 }
@@ -58,7 +69,11 @@ export async function getSettings(): Promise<Settings> {
 export async function saveSettings(settings: Settings): Promise<void> {
   const current = await getSettings()
   await chrome.storage.local.set({
-    [SETTINGS_KEY]: { ...current, ...settings },
+    [SETTINGS_KEY]: {
+      ...current,
+      ...settings,
+      countdownDuration: clampCountdownDuration(settings.countdownDuration),
+    },
   })
 }
 

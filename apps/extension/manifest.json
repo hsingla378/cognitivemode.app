@@ -4,17 +4,31 @@
   "version": "0.1.0",
   "description": "Introduces intentional friction into AI prompting workflows.",
   "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Cognitive Mode",
+    "default_icon": {
+      "48": "favicon.svg",
+      "128": "favicon.svg"
+    }
+  },
+  "icons": {
+    "48": "favicon.svg",
+    "128": "favicon.svg"
+  },
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://claude.ai/*",
-    "https://*.google.com/*"
+    "https://gemini.google.com/*",
+    "https://v0.dev/*"
   ],
   "content_scripts": [
     {
       "matches": [
         "https://chatgpt.com/*",
         "https://claude.ai/*",
-        "https://*.google.com/*"
+        "https://gemini.google.com/*",
+        "https://v0.dev/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
@@ -26,7 +40,8 @@
       "matches": [
         "https://chatgpt.com/*",
         "https://claude.ai/*",
-        "https://*.google.com/*"
+        "https://gemini.google.com/*",
+        "https://v0.dev/*"
       ]
     }
   ]

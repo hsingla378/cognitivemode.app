@@ -86,5 +86,10 @@ export function mountOverlay(options: MountOptions): OverlayController {
       overlayVersion += 1
       render()
     },
+    destroy() {
+      observer.disconnect()
+      root.unmount()
+      host.remove()
+    },
   }
 }

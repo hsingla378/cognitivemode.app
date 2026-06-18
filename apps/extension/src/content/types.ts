@@ -13,4 +13,5 @@ export interface PendingSubmit {
 export interface OverlayController {
   show: (pending: PendingSubmit) => void
   hide: () => void
+  destroy: () => void
 }
