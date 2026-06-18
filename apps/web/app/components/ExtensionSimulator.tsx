@@ -13,6 +13,8 @@ const LAZY_TRIGGERS = [
   "make a",
 ];
 
+const SAMPLE_PROMPT = "Fix this center div bug";
+
 const CHAT_MESSAGES = [
   { role: "user", text: "How do I reverse a linked list in JavaScript?" },
   {
@@ -47,8 +49,8 @@ export default function ExtensionSimulator() {
     hypothesisLength >= MIN_REASONING_CHARS && triedLength >= MIN_REASONING_CHARS;
   const canUnlock = countdown === 0 && bothFilled;
 
-  function triggerOverlay() {
-    if (overlayVisible || unlocked) return;
+  function triggerOverlay(promptValue = inputValue) {
+    if (overlayVisible || unlocked || promptValue.trim().length === 0) return;
     setOverlayVisible(true);
     setCountdown(COUNTDOWN_START);
     setHypothesis("");
@@ -61,26 +63,50 @@ export default function ExtensionSimulator() {
     setInputValue(val);
     const lower = val.toLowerCase();
     const isLazy = LAZY_TRIGGERS.some((t) => lower.includes(t));
-    if (isLazy) triggerOverlay();
+    if (isLazy) triggerOverlay(val);
   }
 
-  function handleInputFocus() {
-    triggerOverlay();
+  function handleSamplePrompt() {
+    setInputValue(SAMPLE_PROMPT);
+    if (!unlocked) {
+      setOverlayVisible(true);
+      setCountdown(COUNTDOWN_START);
+      setHypothesis("");
+      setTried("");
+    }
+    inputRef.current?.focus();
   }
 
-  function handleUnlock() {
-    setUnlocked(true);
-    setOverlayVisible(false);
-  }
-
-  function handleSubmit() {
-    if (!unlocked) return;
+  function handleSubmit(e?: React.FormEvent<HTMLFormElement>) {
+    e?.preventDefault();
+    if (!inputValue.trim()) return;
+    if (!unlocked) {
+      triggerOverlay();
+      return;
+    }
     setSubmitted(true);
     setInputValue("");
     setTimeout(() => {
       setSubmitted(false);
       setUnlocked(false);
     }, 2000);
+  }
+
+  function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    e.preventDefault();
+    handleSubmit();
+  }
+
+  function handleInputFocus() {
+    if (submitted) {
+      setSubmitted(false);
+    }
+  }
+
+  function handleUnlock() {
+    setUnlocked(true);
+    setOverlayVisible(false);
   }
 
   function handleReset() {
@@ -122,9 +148,16 @@ export default function ExtensionSimulator() {
           Feel the friction before you install it.
         </h2>
         <p className="max-w-md text-sm leading-relaxed text-muted">
-          Click into the prompt box below — just like you do on ChatGPT — and
-          watch cognitivemode intercept your lazy query.
+          Type a prompt and hit send — just like you do on ChatGPT — and watch
+          cognitivemode pause the handoff.
         </p>
+        <button
+          type="button"
+          onClick={handleSamplePrompt}
+          className="mt-3 w-fit rounded-full border border-amber-400/25 bg-[rgba(251,191,36,0.06)] px-3 py-1.5 font-mono text-[10px] text-amber-200/80 transition hover:border-amber-300/50 hover:text-amber-100"
+        >
+          try: {SAMPLE_PROMPT}
+        </button>
       </div>
 
       {/* Browser window chrome */}
@@ -170,25 +203,39 @@ export default function ExtensionSimulator() {
 
           {/* Input row */}
           <div className="border-t border-[--color-border] px-4 py-3">
-            <div className="flex items-center gap-2 rounded-xl border border-[--color-border] bg-[#09090b] px-4 py-2.5">
+            <form
+              onSubmit={handleSubmit}
+              className="flex items-center gap-2 rounded-xl border border-[--color-border] bg-[#09090b] px-4 py-2.5"
+            >
               <input
                 ref={inputRef}
                 value={inputValue}
                 onChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
                 onFocus={handleInputFocus}
                 placeholder={
-                  unlocked ? "Prompt unlocked — type away…" : "Message ChatGPT…"
+                  unlocked ? "Prompt unlocked — send when ready…" : "Message ChatGPT…"
                 }
                 className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted/50 outline-none"
               />
               <button
-                onClick={handleSubmit}
-                disabled={!unlocked}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.06)] text-muted transition disabled:opacity-30 enabled:hover:text-foreground"
+                type="submit"
+                disabled={!inputValue.trim()}
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition disabled:cursor-not-allowed disabled:opacity-30 ${
+                  unlocked
+                    ? "bg-[rgba(16,185,129,0.14)] text-emerald-300 enabled:hover:text-emerald-100"
+                    : "bg-[rgba(255,255,255,0.06)] text-muted enabled:hover:text-foreground"
+                }`}
+                aria-label={unlocked ? "Submit prompt" : "Intercept prompt"}
               >
                 ↑
               </button>
-            </div>
+            </form>
+            <p className="mt-2 font-mono text-[10px] text-muted/40">
+              {unlocked
+                ? "Gate cleared. The next send will go through."
+                : "Press Enter or send to trigger the Hypothesis Gate."}
+            </p>
           </div>
 
           {/* Glassmorphic overlay — covers the full chat area */}

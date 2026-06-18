@@ -1,31 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import ExtensionSimulator from "./components/ExtensionSimulator";
 import FeatureGrid from "./components/FeatureGrid";
 import Footer from "./components/Footer";
 
 function isExtensionInstalled(): boolean {
+  if (typeof document === "undefined") return false;
   return document.body.getAttribute("data-cognitive-mode") === "installed";
 }
 
+function subscribeToExtensionInstall(callback: () => void) {
+  if (typeof document === "undefined") return () => {};
+
+  const observer = new MutationObserver(callback);
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["data-cognitive-mode"],
+  });
+
+  return () => observer.disconnect();
+}
+
 export default function Home() {
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    setIsInstalled(isExtensionInstalled());
-
-    const observer = new MutationObserver(() => {
-      setIsInstalled(isExtensionInstalled());
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["data-cognitive-mode"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  const isInstalled = useSyncExternalStore(
+    subscribeToExtensionInstall,
+    isExtensionInstalled,
+    () => false,
+  );
 
   return (
     <main className="flex min-h-screen flex-col justify-center">
@@ -60,7 +62,9 @@ export default function Home() {
             </span>
           ) : (
             <a
-              href="#"
+              href="https://github.com/hsingla378/cognitivemode/tree/master/apps/extension#local-chrome-install"
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex h-11 items-center justify-center rounded-full border border-emerald-400/60 bg-[rgba(16,185,129,0.08)] px-6 text-sm font-medium text-foreground shadow-[0_0_24px_rgba(16,185,129,0.4)] backdrop-blur-md transition hover:border-emerald-300 hover:bg-[rgba(16,185,129,0.15)]"
             >
               Add to Chrome — It&apos;s Free

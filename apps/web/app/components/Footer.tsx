@@ -24,24 +24,6 @@ export default function Footer() {
           </a>
           <span className="h-3 w-px bg-[--color-border]" />
           <a
-            href="https://www.linkedin.com/in/hsingla378/"
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
-          >
-            LinkedIn
-          </a>
-          <span className="h-3 w-px bg-[--color-border]" />
-          <a
-            href="https://www.himanshusingla.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
-          >
-            Portfolio
-          </a>
-          <span className="h-3 w-px bg-[--color-border]" />
-          <a
             href="#extension-simulator"
             className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
           >

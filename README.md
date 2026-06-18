@@ -74,6 +74,8 @@ npm run build:ext
 
 This creates the unpacked Chrome extension in `apps/extension/dist`.
 
+For local browser installation, follow the Chrome unpacked extension flow in [`apps/extension/README.md`](apps/extension/README.md#local-chrome-install).
+
 ## Roadmap
 
 - **Phase 1–5 (Web Base)**: Ship landing page, core product narrative, interactive extension simulator UX, and performance polish.

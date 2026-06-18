@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# Cognitive Mode Extension
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Manifest V3 Chrome extension for the Cognitive Mode friction loop.
 
-Currently, two official plugins are available:
+It intercepts prompt submissions on supported AI tools, asks the user to write a short hypothesis and what they already tried, waits for the configured delay, and stores the resulting cognitive log locally with `chrome.storage.local`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Supported Surfaces
 
-## React Compiler
+- ChatGPT: `chatgpt.com`
+- Claude: `claude.ai`
+- v0: `v0.dev`
+- Cognitive Mode web app: injects `data-cognitive-mode="installed"` for the landing page handshake
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Architecture
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+apps/extension/
+|- manifest.json              # MV3 permissions, popup, content script, icons
+|- popup.html                 # Extension popup entry
+|- src/App.tsx                # Popup dashboard and settings
+|- src/content/index.tsx      # Content-script entry and host routing
+|- src/content/interceptor.ts # Platform DOM submit interception
+|- src/content/Overlay.tsx    # Hypothesis Gate UI
+|- src/content/storage.ts     # Local logs, stats, and settings
+`- vite.config.ts             # Stable extension build outputs
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Local Chrome Install
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+From the repository root:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run build:ext
 ```
+
+Then:
+
+1. Open `chrome://extensions`.
+2. Enable Developer mode.
+3. Click Load unpacked.
+4. Select `apps/extension/dist`.
+5. Refresh any open ChatGPT, Claude, v0, or local Cognitive Mode tabs.
+
+## Development Notes
+
+- Logs and settings stay local to the browser. There is no backend, telemetry, or external network dependency for the core extension behavior.
+- The popup slider stores a custom friction delay from 5 to 60 seconds.
+- Build output uses stable filenames because MV3 manifests cannot point at hashed content-script names.
+- The extension is not published to the Chrome Web Store yet; the local unpacked flow above is the current install path.
