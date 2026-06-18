@@ -5,7 +5,18 @@ import type { PendingSubmit } from './types'
 
 let pendingSubmit: PendingSubmit | null = null
 
+function isLandingPage(): boolean {
+  const { hostname } = window.location
+  return hostname.includes('cognitivemode.app') || hostname.includes('localhost')
+}
+
 function init() {
+  if (isLandingPage()) {
+    document.body.setAttribute('data-cognitive-mode', 'installed')
+    console.debug('[Cognitive Mode] extension handshake active')
+    return
+  }
+
   const overlay = mountOverlay({
     async onSubmit({ hypothesis, tried }) {
       const submit = pendingSubmit

@@ -20,7 +20,9 @@
     "https://chatgpt.com/*",
     "https://claude.ai/*",
     "https://gemini.google.com/*",
-    "https://v0.dev/*"
+    "https://v0.dev/*",
+    "https://cognitivemode.app/*",
+    "http://localhost:3000/*"
   ],
   "content_scripts": [
     {
@@ -28,7 +30,9 @@
         "https://chatgpt.com/*",
         "https://claude.ai/*",
         "https://gemini.google.com/*",
-        "https://v0.dev/*"
+        "https://v0.dev/*",
+        "https://cognitivemode.app/*",
+        "http://localhost:3000/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
