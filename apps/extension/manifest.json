@@ -3,7 +3,7 @@
   "name": "Cognitive Mode",
   "version": "0.1.0",
   "description": "Introduces intentional friction into AI prompting workflows.",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Cognitive Mode",

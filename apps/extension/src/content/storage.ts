@@ -35,10 +35,27 @@ function clampCountdownDuration(value: number): number {
 
 function getCalendarDate(): string {
   const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
+  return formatCalendarDate(now)
+}
+
+function formatCalendarDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+function calculateActiveStreak(logs: CognitiveEntry[]): number {
+  const loggedDates = new Set(logs.map((entry) => formatCalendarDate(new Date(entry.timestamp))))
+  const cursor = new Date()
+  let streak = 0
+
+  while (loggedDates.has(formatCalendarDate(cursor))) {
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+
+  return streak
 }
 
 async function readBypassState(): Promise<BypassState> {
@@ -68,7 +85,7 @@ export async function getBypasses(): Promise<number> {
   return state.remaining
 }
 
-export async function useBypass(): Promise<boolean> {
+export async function consumeDailyBypass(): Promise<boolean> {
   const state = await readBypassState()
   if (state.remaining <= 0) return false
 
@@ -101,7 +118,7 @@ export async function getStats(): Promise<Stats> {
   return {
     totalInterceptions,
     timeSavedThinking: formatTimeSaved(totalSeconds),
-    activeStreak: totalInterceptions,
+    activeStreak: calculateActiveStreak(logs),
   }
 }
 

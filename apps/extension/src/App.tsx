@@ -76,10 +76,10 @@ function App() {
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4">
-        <section className="grid grid-cols-2 gap-3">
+        <section className="grid grid-cols-3 gap-2">
           <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
             <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-              Total AI Interceptions
+              Intercepted
             </p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-50">
               {stats?.totalInterceptions ?? '—'}
@@ -87,10 +87,18 @@ function App() {
           </div>
           <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
             <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-              Time Saved Thinking
+              Think Time
             </p>
             <p className="mt-1 text-sm font-semibold leading-snug text-zinc-50">
               {stats?.timeSavedThinking ?? '—'}
+            </p>
+          </div>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+              Streak
+            </p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-50">
+              {stats?.activeStreak ?? '—'}
             </p>
           </div>
         </section>

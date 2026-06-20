@@ -14,6 +14,12 @@ export const platformSelectors: Record<string, PlatformSelectors> = {
     input: 'div[contenteditable="true"].ProseMirror',
     button: 'button[aria-label="Send Message"]',
   },
+  'gemini.google.com': {
+    input:
+      'rich-textarea div[contenteditable="true"], div[contenteditable="true"][aria-label*="prompt"], div[contenteditable="true"][aria-label*="Prompt"]',
+    button:
+      'button[aria-label*="Send"], button[aria-label*="send"], button[data-test-id="send-button"]',
+  },
   'v0.dev': {
     input: 'textarea[name="prompt"]',
     button: 'button[type="submit"]',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getBypasses, getSettings, useBypass } from './storage'
+import { consumeDailyBypass, getBypasses, getSettings } from './storage'
 import type { PendingSubmit } from './types'
 
 const DEFAULT_COUNTDOWN_SECONDS = 15
@@ -89,7 +89,7 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
   async function handleEmergencySkip() {
     if (submitting || bypassesLeft <= 0) return
 
-    const used = await useBypass()
+    const used = await consumeDailyBypass()
     if (!used) {
       setBypassesLeft(0)
       return

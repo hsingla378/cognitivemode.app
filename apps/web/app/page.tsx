@@ -1,25 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import ExtensionSimulator from "./components/ExtensionSimulator";
 import FeatureGrid from "./components/FeatureGrid";
 import Footer from "./components/Footer";
 
+const EXTENSION_META_SELECTOR =
+  'meta[name="cognitivemode-extension"][content="installed"]';
+
 function isExtensionInstalled(): boolean {
   if (typeof document === "undefined") return false;
-  return (
-    document.querySelector(
-      'meta[name="cognitivemode-extension"][content="installed"]',
-    ) !== null
-  );
+  return document.querySelector(EXTENSION_META_SELECTOR) !== null;
+}
+
+function subscribeToExtensionInstallStatus(onStoreChange: () => void): () => void {
+  if (typeof document === "undefined") return () => {};
+
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(document.head, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["content", "name"],
+  });
+
+  return () => observer.disconnect();
 }
 
 export default function Home() {
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    setIsInstalled(isExtensionInstalled());
-  }, []);
+  const isInstalled = useSyncExternalStore(
+    subscribeToExtensionInstallStatus,
+    isExtensionInstalled,
+    () => false,
+  );
 
   return (
     <main className="flex min-h-screen flex-col justify-center">
