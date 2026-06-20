@@ -104,9 +104,20 @@ function App() {
         </section>
 
         <section className="flex min-h-0 flex-1 flex-col">
-          <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-            Recent Activity
-          </h2>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+              Recent Activity
+            </h2>
+            <button
+              type="button"
+              onClick={() =>
+                chrome.tabs.create({ url: chrome.runtime.getURL('history.html') })
+              }
+              className="text-[11px] font-medium text-zinc-400 transition hover:text-zinc-200"
+            >
+              View Full History →
+            </button>
+          </div>
           <ul className="activity-feed min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
             {recentLogs.length === 0 ? (
               <li className="rounded-md border border-dashed border-zinc-800 px-3 py-4 text-center text-xs text-zinc-500">

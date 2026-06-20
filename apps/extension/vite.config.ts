@@ -33,13 +33,16 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: isContentBuild
           ? resolve(__dirname, 'src/content/index.tsx')
-          : resolve(__dirname, 'popup.html'),
+          : {
+              popup: resolve(__dirname, 'popup.html'),
+              history: resolve(__dirname, 'history.html'),
+            },
         output: {
           entryFileNames: isContentBuild ? 'content.js' : 'assets/[name].js',
           chunkFileNames: 'chunks/[name].js',
           assetFileNames: (assetInfo) => {
             if (assetInfo.names?.some((name) => name.endsWith('.css'))) {
-              return isContentBuild ? 'content.css' : 'assets/popup[extname]'
+              return isContentBuild ? 'content.css' : 'assets/[name][extname]'
             }
             return 'assets/[name][extname]'
           },

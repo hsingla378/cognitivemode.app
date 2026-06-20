@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
-html,
-body,
-#root {
+body.popup-page,
+body.popup-page #root {
   margin: 0;
   width: 320px;
   height: 384px;
