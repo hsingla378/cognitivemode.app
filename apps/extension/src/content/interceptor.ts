@@ -16,9 +16,13 @@ export const platformSelectors: Record<string, PlatformSelectors> = {
   },
   'gemini.google.com': {
     input:
-      'rich-textarea div[contenteditable="true"], div[contenteditable="true"][aria-label*="prompt"], div[contenteditable="true"][aria-label*="Prompt"]',
+      'rich-textarea .ql-editor[contenteditable="true"], rich-textarea div[contenteditable="true"], div[contenteditable="true"][role="textbox"], div[contenteditable="true"][aria-label*="prompt" i], div[contenteditable="true"][aria-label*="Enter" i]',
     button:
-      'button[aria-label*="Send"], button[aria-label*="send"], button[data-test-id="send-button"]',
+      'button[aria-label="Send message"], button[aria-label*="Send" i], button.send-button, button[mattooltip*="Send" i], button[data-test-id="send-button"]',
+  },
+  'bolt.new': {
+    input: 'textarea[placeholder*="Bolt"]',
+    button: 'button.bg-accent-500, button[class*="bg-accent"]',
   },
   'v0.dev': {
     input: 'textarea[name="prompt"]',
@@ -29,6 +33,8 @@ export const platformSelectors: Record<string, PlatformSelectors> = {
 export interface InterceptorHandle {
   /** Temporarily bypass interception so a pending message can be sent. */
   unlock: (submit?: () => void) => void
+  /** Clear the intercept lock when the overlay is dismissed without submitting. */
+  releaseIntercept: () => void
   /** Tear down listeners and observers. */
   destroy: () => void
 }
@@ -136,6 +142,7 @@ const noopHandle: InterceptorHandle = {
   unlock: (submit?: () => void) => {
     submit?.()
   },
+  releaseIntercept: () => {},
   destroy: () => {},
 }
 
@@ -145,21 +152,29 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
 
   const { input: inputSelector, button: buttonSelector } = platform
   let isUnlocked = false
+  let isIntercepting = false
 
   const unlock = (submit?: () => void) => {
     isUnlocked = true
+    isIntercepting = false
     submit?.()
     window.setTimeout(() => {
       isUnlocked = false
     }, 0)
   }
 
+  const releaseIntercept = () => {
+    isIntercepting = false
+  }
+
   const intercept = (pending: PendingSubmit) => {
+    if (isIntercepting) return
+    isIntercepting = true
     onIntercept(pending)
   }
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (isUnlocked) return
+    if (isUnlocked || isIntercepting) return
     if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return
 
     const input = getComposerFromTarget(event.target, inputSelector)
@@ -171,7 +186,7 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
   }
 
   const handleSendClick = (event: MouseEvent) => {
-    if (isUnlocked) return
+    if (isUnlocked || isIntercepting) return
 
     const target = event.target
     if (!(target instanceof HTMLElement)) return
@@ -197,5 +212,5 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
     document.removeEventListener('click', handleSendClick, true)
   }
 
-  return { unlock, destroy }
+  return { unlock, releaseIntercept, destroy }
 }

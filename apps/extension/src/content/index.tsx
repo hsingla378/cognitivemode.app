@@ -38,6 +38,7 @@ function init() {
     },
     onDismiss() {
       pendingSubmit = null
+      interceptor.releaseIntercept()
     },
   })
 
