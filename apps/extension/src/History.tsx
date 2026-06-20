@@ -57,7 +57,7 @@ function entryMatchesQuery(entry: CognitiveEntry, query: string): boolean {
   return fuzzyMatch(query, searchable)
 }
 
-function SearchIcon() {
+export function SearchIcon() {
   return (
     <svg
       aria-hidden="true"
@@ -76,7 +76,7 @@ function SearchIcon() {
   )
 }
 
-function HistoryPage() {
+export function HistoryPage() {
   const [logs, setLogs] = useState<CognitiveEntry[]>([])
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)

@@ -10,7 +10,7 @@ It intercepts prompt submissions on supported AI tools, asks the user to write a
 - Claude: `claude.ai`
 - Gemini: `gemini.google.com`
 - Bolt: `bolt.new`
-- v0: `v0.dev`
+- v0: `v0.app` and `v0.dev`
 - Cognitive Mode web app: injects `<meta name="cognitivemode-extension" content="installed" />` for the landing page handshake
 
 ## Architecture

@@ -3,6 +3,7 @@ export interface CognitiveEntry {
   tried: string
   domain: string
   timestamp: number
+  durationSeconds?: number
 }
 
 export interface PendingSubmit {

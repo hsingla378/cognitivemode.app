@@ -8,6 +8,7 @@ const MIN_CHARS = 10
 export interface HypothesisGateData {
   hypothesis: string
   tried: string
+  durationSeconds: number
 }
 
 interface FrictionOverlayProps {
@@ -80,7 +81,11 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     setSubmitting(true)
     setHidden(true)
     try {
-      await onSubmit({ hypothesis: hypothesis.trim(), tried: tried.trim() })
+      await onSubmit({
+        hypothesis: hypothesis.trim(),
+        tried: tried.trim(),
+        durationSeconds: countdownDuration,
+      })
     } finally {
       setSubmitting(false)
     }
@@ -99,7 +104,11 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     setSubmitting(true)
     setHidden(true)
     try {
-      await onSubmit({ hypothesis: hypothesis.trim(), tried: tried.trim() })
+      await onSubmit({
+        hypothesis: hypothesis.trim(),
+        tried: tried.trim(),
+        durationSeconds: 0,
+      })
     } finally {
       setSubmitting(false)
     }

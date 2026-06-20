@@ -21,12 +21,20 @@ export const platformSelectors: Record<string, PlatformSelectors> = {
       'button[aria-label="Send message"], button[aria-label*="Send" i], button.send-button, button[mattooltip*="Send" i], button[data-test-id="send-button"]',
   },
   'bolt.new': {
-    input: 'textarea[placeholder*="Bolt"]',
-    button: 'button.bg-accent-500, button[class*="bg-accent"]',
+    input:
+      'textarea[placeholder*="Bolt" i], textarea[placeholder*="help you today" i], textarea[placeholder*="/command" i], div[contenteditable="true"][role="textbox"]',
+    button:
+      'button[aria-label*="send" i], button[type="submit"], button.bg-accent-500, button[class*="bg-accent"]',
+  },
+  'v0.app': {
+    input:
+      'textarea[name="prompt"], textarea[placeholder*="Ask" i], textarea[placeholder*="follow-up" i], div[contenteditable="true"][role="textbox"]',
+    button: 'button[aria-label*="send" i], button[type="submit"], button[data-testid*="send" i]',
   },
   'v0.dev': {
-    input: 'textarea[name="prompt"]',
-    button: 'button[type="submit"]',
+    input:
+      'textarea[name="prompt"], textarea[placeholder*="Ask" i], textarea[placeholder*="follow-up" i], div[contenteditable="true"][role="textbox"]',
+    button: 'button[aria-label*="send" i], button[type="submit"], button[data-testid*="send" i]',
   },
 }
 

@@ -29,11 +29,11 @@ function init() {
   }
 
   const overlay = mountOverlay({
-    async onSubmit({ hypothesis, tried }) {
+    async onSubmit({ hypothesis, tried, durationSeconds }) {
       const submit = pendingSubmit
       pendingSubmit = null
 
-      await saveCognitiveLog(hypothesis, tried)
+      await saveCognitiveLog(hypothesis, tried, durationSeconds)
       interceptor.unlock(submit?.trigger)
     },
     onDismiss() {

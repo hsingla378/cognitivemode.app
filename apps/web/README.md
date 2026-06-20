@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cognitive Mode Web
 
-## Getting Started
+Landing page and interactive product demo for [cognitivemode.app](https://cognitivemode.app).
 
-First, run the development server:
+This app is intentionally static and local-first in its messaging: it explains the problem, lets visitors feel the Hypothesis Gate through a browser-window simulator, and points them to the unpacked Chrome extension flow until the extension is published.
+
+> Built with AI-assisted vibe coding, with the source kept explicit so the process is honest and inspectable.
+
+## What This App Includes
+
+- A high-contrast hero for the Cognitive Mode product narrative.
+- A reactive install CTA that changes when the extension injects its local presence meta tag.
+- An interactive extension simulator that reproduces the pause, timer, and two-field hypothesis gate.
+- Feature and privacy sections focused on the zero-backend extension architecture.
+- App Router metadata for title, description, keywords, Open Graph, and Twitter previews.
+
+## Local Development
+
+From the repository root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev:web
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+From the repository root:
 
-## Learn More
+```bash
+npm run build:web
+```
 
-To learn more about Next.js, take a look at the following resources:
+The Vercel project should use `apps/web` as its root directory and deploy the static Next.js output for `cognitivemode.app`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Extension Handshake
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+When the unpacked extension is active on `cognitivemode.app` or `localhost:3000`, its content script injects:
 
-## Deploy on Vercel
+```html
+<meta name="cognitivemode-extension" content="installed" />
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The landing page watches `document.head` and changes the primary CTA from `Add to Chrome` to `Extension Installed` when that tag appears.

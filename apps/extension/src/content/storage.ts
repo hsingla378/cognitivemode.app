@@ -113,7 +113,10 @@ function formatTimeSaved(totalSeconds: number): string {
 export async function getStats(): Promise<Stats> {
   const logs = await getCognitiveLogs()
   const totalInterceptions = logs.length
-  const totalSeconds = totalInterceptions * SECONDS_PER_INTERCEPTION
+  const totalSeconds = logs.reduce(
+    (sum, entry) => sum + (entry.durationSeconds ?? SECONDS_PER_INTERCEPTION),
+    0,
+  )
 
   return {
     totalInterceptions,
@@ -153,16 +156,18 @@ export async function saveSettings(settings: Settings): Promise<void> {
 export async function saveCognitiveLog(
   hypothesis: string,
   tried: string,
+  durationSeconds = DEFAULT_COUNTDOWN_DURATION,
 ): Promise<void> {
   const entry: CognitiveEntry = {
     hypothesis,
     tried,
     domain: location.hostname,
     timestamp: Date.now(),
+    durationSeconds,
   }
 
   const entries = await getCognitiveLogs()
   entries.push(entry)
 
-  await chrome.storage.local.set({ [STORAGE_KEY]: entries.slice(-50) })
+  await chrome.storage.local.set({ [STORAGE_KEY]: entries })
 }
