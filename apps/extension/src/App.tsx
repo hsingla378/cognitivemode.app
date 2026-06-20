@@ -29,6 +29,11 @@ function formatTimestamp(timestamp: number): string {
   }).format(new Date(timestamp))
 }
 
+function buildShareTweetUrl(stats: Stats): string {
+  const text = `I just saved ${stats.timeSavedThinking} of mindless AI prompting and preserved my engineering intuition using cognitivemode.app. Current streak: ${stats.activeStreak} mindful prompts.`
+  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+}
+
 function App() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentLogs, setRecentLogs] = useState<CognitiveEntry[]>([])
@@ -65,6 +70,11 @@ function App() {
     await saveSettings({ countdownDuration: clamped })
   }
 
+  function handleShareProgress() {
+    if (!stats) return
+    chrome.tabs.create({ url: buildShareTweetUrl(stats) })
+  }
+
   return (
     <div className="flex h-96 w-80 flex-col bg-zinc-950 text-zinc-100">
       <header className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
@@ -86,9 +96,27 @@ function App() {
             </p>
           </div>
           <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-              Think Time
-            </p>
+            <div className="flex items-start justify-between gap-1">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                Think Time
+              </p>
+              <button
+                type="button"
+                onClick={handleShareProgress}
+                disabled={!stats}
+                title="Share progress on X"
+                aria-label="Share progress on X"
+                className="shrink-0 rounded p-0.5 text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  className="h-3 w-3 fill-current"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </button>
+            </div>
             <p className="mt-1 text-sm font-semibold leading-snug text-zinc-50">
               {stats?.timeSavedThinking ?? '—'}
             </p>
