@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getSettings } from './storage'
+import { getBypasses, getSettings, useBypass } from './storage'
 import type { PendingSubmit } from './types'
 
 const DEFAULT_COUNTDOWN_SECONDS = 15
@@ -29,6 +29,7 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
   const [secondsLeft, setSecondsLeft] = useState(DEFAULT_COUNTDOWN_SECONDS)
   const [submitting, setSubmitting] = useState(false)
   const [hidden, setHidden] = useState(false)
+  const [bypassesLeft, setBypassesLeft] = useState(0)
 
   const timerDone = secondsLeft === 0
   const hypothesisValid = hypothesis.trim().length >= MIN_CHARS
@@ -60,8 +61,41 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     return () => clearInterval(intervalId)
   }, [pending, countdownDuration])
 
+  useEffect(() => {
+    if (!pending) return
+
+    let cancelled = false
+
+    void getBypasses().then((remaining) => {
+      if (!cancelled) setBypassesLeft(remaining)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [pending])
+
   async function handleUnlock() {
     if (!canUnlock) return
+    setSubmitting(true)
+    setHidden(true)
+    try {
+      await onSubmit({ hypothesis: hypothesis.trim(), tried: tried.trim() })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleEmergencySkip() {
+    if (submitting || bypassesLeft <= 0) return
+
+    const used = await useBypass()
+    if (!used) {
+      setBypassesLeft(0)
+      return
+    }
+
+    setBypassesLeft((prev) => Math.max(0, prev - 1))
     setSubmitting(true)
     setHidden(true)
     try {
@@ -180,7 +214,7 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex flex-col items-end gap-2">
             <button
               type="button"
               onClick={handleUnlock}
@@ -193,6 +227,16 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
             >
               {submitting ? 'Unlocking…' : 'Unlock Prompt'}
             </button>
+            {bypassesLeft > 0 && (
+              <button
+                type="button"
+                onClick={handleEmergencySkip}
+                disabled={submitting}
+                className="font-mono text-[10px] uppercase tracking-wider text-zinc-600 transition hover:text-zinc-400 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Emergency Skip ({bypassesLeft} left today)
+              </button>
+            )}
           </div>
         </div>
       </div>
