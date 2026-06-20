@@ -16,6 +16,12 @@ interface FrictionOverlayProps {
   onDismiss: () => void
 }
 
+function formatCountdown(seconds: number): string {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
+
 export default function FrictionOverlay({ pending, onSubmit, onDismiss }: FrictionOverlayProps) {
   const [hypothesis, setHypothesis] = useState('')
   const [tried, setTried] = useState('')
@@ -65,9 +71,6 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     }
   }
 
-  const countdownProgress =
-    ((countdownDuration - secondsLeft) / countdownDuration) * 100
-
   return (
     <div
       className={`fixed inset-0 z-[2147483647] flex items-center justify-center p-4 transition-all duration-500 ${
@@ -77,7 +80,7 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     >
       <button
         type="button"
-        className={`absolute inset-0 bg-[rgba(0,0,0,0.55)] backdrop-blur-md transition-opacity duration-500 ${
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${
           visible ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onDismiss}
@@ -86,85 +89,52 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
       />
 
       <div
-        className={`relative z-10 w-full max-w-2xl overflow-hidden rounded-3xl border border-[rgba(255,255,255,0.1)] bg-[rgba(12,12,16,0.55)] p-8 shadow-[0_40px_100px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl transition-all duration-500 ${
+        className={`relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/80 p-8 shadow-[0_32px_80px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all duration-500 ${
           visible ? 'translate-y-0 scale-100' : 'translate-y-4 scale-[0.97]'
         }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="hypothesis-gate-title"
       >
-        <div
-          className="pointer-events-none absolute inset-0 rounded-3xl"
-          style={{
-            background:
-              'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120,119,198,0.18), transparent), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(16,185,129,0.08), transparent)',
-          }}
-        />
-
         <div className="relative">
-          <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="mb-8 flex items-center justify-between gap-4">
             <div>
-              <div className="mb-2 flex items-center gap-2">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.9)]" />
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted/80">
-                  hypothesis gate
-                </p>
-              </div>
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                hypothesis gate
+              </p>
               <h2
                 id="hypothesis-gate-title"
-                className="text-lg font-medium tracking-tight text-foreground"
+                className="text-sm font-medium tracking-tight text-zinc-200"
               >
                 Pause before you prompt
               </h2>
             </div>
-
-            <div className="flex shrink-0 flex-col items-center gap-1">
-              <div className="relative flex h-14 w-14 items-center justify-center">
-                <svg className="absolute inset-0 -rotate-90" viewBox="0 0 56 56" aria-hidden>
-                  <circle
-                    cx="28"
-                    cy="28"
-                    r="24"
-                    fill="none"
-                    stroke="rgba(255,255,255,0.06)"
-                    strokeWidth="3"
-                  />
-                  <circle
-                    cx="28"
-                    cy="28"
-                    r="24"
-                    fill="none"
-                    stroke={timerDone ? 'rgba(16,185,129,0.8)' : 'rgba(251,191,36,0.7)'}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray={`${(countdownProgress / 100) * 150.8} 150.8`}
-                    className="transition-all duration-1000 ease-linear"
-                  />
-                </svg>
-                <span
-                  className={`font-mono text-sm font-semibold tabular-nums ${
-                    timerDone ? 'text-emerald-400' : 'text-amber-300'
-                  }`}
-                >
-                  {timerDone ? '✓' : secondsLeft}
-                </span>
-              </div>
-              <span className="font-mono text-[9px] uppercase tracking-wider text-muted/50">
-                {timerDone ? 'ready' : 'wait'}
-              </span>
-            </div>
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="font-mono text-[10px] uppercase tracking-wider text-zinc-600 transition hover:text-zinc-400"
+            >
+              dismiss
+            </button>
           </div>
 
-          <p className="mb-6 max-w-lg text-sm leading-relaxed text-muted/90">
-            Articulate your thinking before the AI does it for you. Both fields need at least{' '}
-            {MIN_CHARS} characters, and the timer must reach zero.
-          </p>
+          <div className="mb-10 flex justify-center">
+            <span
+              className={`select-none font-mono text-7xl font-light tabular-nums tracking-tighter transition-colors duration-700 ${
+                timerDone ? 'text-emerald-400/90' : 'text-zinc-100'
+              }`}
+              aria-live="polite"
+              aria-label={timerDone ? 'Timer complete' : `${secondsLeft} seconds remaining`}
+            >
+              {formatCountdown(secondsLeft)}
+            </span>
+          </div>
 
-          <div className="mb-7 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
+          <div className="mb-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="cognitive-hypothesis"
-                className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted/70"
+                className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500"
               >
                 What is your hypothesis?
               </label>
@@ -174,21 +144,21 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
                 onChange={(e) => setHypothesis(e.target.value)}
                 rows={5}
                 placeholder="I think the issue is…"
-                className="resize-none rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3.5 py-3 text-sm text-foreground placeholder:text-muted/35 outline-none ring-0 transition focus:border-[rgba(255,255,255,0.18)] focus:bg-[rgba(255,255,255,0.06)]"
+                className="friction-textarea w-full resize-none border-0 border-b border-white/10 bg-transparent px-0 py-2.5 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-600 outline-none transition-[border-color,box-shadow] duration-200 focus:border-white/30 focus:shadow-[0_1px_0_0_rgba(255,255,255,0.35)]"
               />
               <p
-                className={`font-mono text-[10px] tabular-nums ${
-                  hypothesisValid ? 'text-emerald-400/70' : 'text-muted/40'
+                className={`font-mono text-xs tabular-nums ${
+                  hypothesisValid ? 'text-emerald-400' : 'text-red-400/80'
                 }`}
               >
                 {hypothesis.trim().length}/{MIN_CHARS} chars
               </p>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="cognitive-tried"
-                className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted/70"
+                className="font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-500"
               >
                 What have you already tried?
               </label>
@@ -198,11 +168,11 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
                 onChange={(e) => setTried(e.target.value)}
                 rows={5}
                 placeholder="I already checked…"
-                className="resize-none rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-3.5 py-3 text-sm text-foreground placeholder:text-muted/35 outline-none ring-0 transition focus:border-[rgba(255,255,255,0.18)] focus:bg-[rgba(255,255,255,0.06)]"
+                className="friction-textarea w-full resize-none border-0 border-b border-white/10 bg-transparent px-0 py-2.5 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-600 outline-none transition-[border-color,box-shadow] duration-200 focus:border-white/30 focus:shadow-[0_1px_0_0_rgba(255,255,255,0.35)]"
               />
               <p
-                className={`font-mono text-[10px] tabular-nums ${
-                  triedValid ? 'text-emerald-400/70' : 'text-muted/40'
+                className={`font-mono text-xs tabular-nums ${
+                  triedValid ? 'text-emerald-400' : 'text-red-400/80'
                 }`}
               >
                 {tried.trim().length}/{MIN_CHARS} chars
@@ -210,31 +180,19 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4 border-t border-[rgba(255,255,255,0.06)] pt-5">
-            <p className="font-mono text-[10px] text-muted/45">
-              {!timerDone
-                ? `Timer: ${secondsLeft}s remaining`
-                : !hypothesisValid || !triedValid
-                  ? `Need ${MIN_CHARS}+ characters in each field`
-                  : 'All conditions met.'}
-            </p>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onDismiss}
-                className="font-mono text-[10px] text-muted/50 transition hover:text-muted"
-              >
-                dismiss
-              </button>
-              <button
-                type="button"
-                onClick={handleUnlock}
-                disabled={!canUnlock}
-                className="rounded-full border border-emerald-400/40 bg-[rgba(16,185,129,0.1)] px-6 py-2.5 font-mono text-xs font-medium text-foreground shadow-[0_0_24px_rgba(16,185,129,0.15)] transition enabled:hover:border-emerald-300/60 enabled:hover:bg-[rgba(16,185,129,0.18)] enabled:hover:shadow-[0_0_32px_rgba(16,185,129,0.3)] disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                {submitting ? 'Unlocking…' : 'Unlock Prompt'}
-              </button>
-            </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleUnlock}
+              disabled={!canUnlock}
+              className={`rounded-lg px-7 py-2.5 text-sm font-medium transition-all duration-300 ${
+                canUnlock
+                  ? 'cursor-pointer bg-white text-zinc-950 shadow-[0_0_32px_rgba(255,255,255,0.2),0_0_64px_rgba(255,255,255,0.08)] hover:bg-zinc-100 hover:shadow-[0_0_40px_rgba(255,255,255,0.35),0_0_80px_rgba(255,255,255,0.12)]'
+                  : 'cursor-not-allowed bg-zinc-800/40 text-zinc-600 opacity-40'
+              }`}
+            >
+              {submitting ? 'Unlocking…' : 'Unlock Prompt'}
+            </button>
           </div>
         </div>
       </div>

@@ -15,3 +15,21 @@
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+.friction-textarea {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.friction-textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.friction-textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+
+.friction-textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
