@@ -5,14 +5,25 @@ import type { PendingSubmit } from './types'
 
 let pendingSubmit: PendingSubmit | null = null
 
+const EXTENSION_META_NAME = 'cognitivemode-extension'
+
 function isLandingPage(): boolean {
   const { hostname } = window.location
-  return hostname.includes('cognitivemode.app') || hostname.includes('localhost')
+  return hostname === 'cognitivemode.app' || hostname === 'localhost'
+}
+
+function injectExtensionMetaTag(): void {
+  if (document.querySelector(`meta[name="${EXTENSION_META_NAME}"]`)) return
+
+  const meta = document.createElement('meta')
+  meta.name = EXTENSION_META_NAME
+  meta.content = 'installed'
+  document.head.appendChild(meta)
 }
 
 function init() {
   if (isLandingPage()) {
-    document.body.setAttribute('data-cognitive-mode', 'installed')
+    injectExtensionMetaTag()
     console.debug('[Cognitive Mode] extension handshake active')
     return
   }

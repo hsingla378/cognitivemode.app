@@ -1,33 +1,25 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import ExtensionSimulator from "./components/ExtensionSimulator";
 import FeatureGrid from "./components/FeatureGrid";
 import Footer from "./components/Footer";
 
 function isExtensionInstalled(): boolean {
   if (typeof document === "undefined") return false;
-  return document.body.getAttribute("data-cognitive-mode") === "installed";
-}
-
-function subscribeToExtensionInstall(callback: () => void) {
-  if (typeof document === "undefined") return () => {};
-
-  const observer = new MutationObserver(callback);
-  observer.observe(document.body, {
-    attributes: true,
-    attributeFilter: ["data-cognitive-mode"],
-  });
-
-  return () => observer.disconnect();
+  return (
+    document.querySelector(
+      'meta[name="cognitivemode-extension"][content="installed"]',
+    ) !== null
+  );
 }
 
 export default function Home() {
-  const isInstalled = useSyncExternalStore(
-    subscribeToExtensionInstall,
-    isExtensionInstalled,
-    () => false,
-  );
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    setIsInstalled(isExtensionInstalled());
+  }, []);
 
   return (
     <main className="flex min-h-screen flex-col justify-center">
@@ -58,7 +50,7 @@ export default function Home() {
               aria-disabled="true"
               className="inline-flex h-11 cursor-default items-center justify-center rounded-full border border-emerald-400/70 bg-[rgba(16,185,129,0.06)] px-6 text-sm font-medium text-emerald-300/90 opacity-90"
             >
-              Extension Installed ✅
+              Extension Installed ✓
             </span>
           ) : (
             <a
