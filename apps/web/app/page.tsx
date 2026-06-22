@@ -1,38 +1,35 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import ExtensionSimulator from "./components/ExtensionSimulator";
 import FeatureGrid from "./components/FeatureGrid";
 import Footer from "./components/Footer";
 
 const EXTENSION_META_SELECTOR =
   'meta[name="cognitivemode-extension"][content="installed"]';
+const EXTENSION_READY_EVENT = "cognitivemode:ready";
 
 function isExtensionInstalled(): boolean {
   if (typeof document === "undefined") return false;
   return document.querySelector(EXTENSION_META_SELECTOR) !== null;
 }
 
-function subscribeToExtensionInstallStatus(onStoreChange: () => void): () => void {
-  if (typeof document === "undefined") return () => {};
-
-  const observer = new MutationObserver(onStoreChange);
-  observer.observe(document.head, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ["content", "name"],
-  });
-
-  return () => observer.disconnect();
-}
-
 export default function Home() {
-  const isInstalled = useSyncExternalStore(
-    subscribeToExtensionInstallStatus,
-    isExtensionInstalled,
-    () => false,
-  );
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const markInstalled = () => setIsInstalled(true);
+
+    if (isExtensionInstalled()) {
+      markInstalled();
+    }
+
+    window.addEventListener(EXTENSION_READY_EVENT, markInstalled);
+
+    return () => {
+      window.removeEventListener(EXTENSION_READY_EVENT, markInstalled);
+    };
+  }, []);
 
   return (
     <main className="flex min-h-screen flex-col justify-center">
@@ -57,24 +54,35 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
-          {isInstalled ? (
-            <span
-              aria-disabled="true"
-              className="inline-flex h-11 cursor-default items-center justify-center rounded-full border border-emerald-400/70 bg-[rgba(16,185,129,0.06)] px-6 text-sm font-medium text-emerald-300/90 opacity-90"
-            >
-              Extension Installed ✓
-            </span>
-          ) : (
-            <a
-              href="https://github.com/hsingla378/cognitivemode/tree/master/apps/extension#local-chrome-install"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-emerald-400/60 bg-[rgba(16,185,129,0.08)] px-6 text-sm font-medium text-foreground shadow-[0_0_24px_rgba(16,185,129,0.4)] backdrop-blur-md transition hover:border-emerald-300 hover:bg-[rgba(16,185,129,0.15)]"
-            >
-              Add to Chrome — It&apos;s Free
-            </a>
-          )}
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+          <div className="flex flex-col items-center gap-2 sm:items-start">
+            {isInstalled ? (
+              <>
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex h-11 cursor-default items-center justify-center rounded-full border border-emerald-300/70 bg-[linear-gradient(135deg,rgba(16,185,129,0.28),rgba(20,83,45,0.24))] px-6 text-sm font-semibold text-emerald-100 shadow-[0_0_28px_rgba(16,185,129,0.28),inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-md disabled:opacity-100"
+                >
+                  Extension Installed ✓
+                </button>
+                <a
+                  href="chrome://extensions/"
+                  className="text-[11px] text-emerald-200/70 underline-offset-4 transition hover:text-emerald-100 hover:underline"
+                >
+                  Pin the extension to your toolbar to view your Knowledge Base.
+                </a>
+              </>
+            ) : (
+              <a
+                href="https://github.com/hsingla378/cognitivemode/tree/master/apps/extension#local-chrome-install"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-11 items-center justify-center rounded-full border border-emerald-400/60 bg-[rgba(16,185,129,0.08)] px-6 text-sm font-medium text-foreground shadow-[0_0_24px_rgba(16,185,129,0.4)] backdrop-blur-md transition hover:border-emerald-300 hover:bg-[rgba(16,185,129,0.15)]"
+              >
+                Add to Chrome — It&apos;s Free
+              </a>
+            )}
+          </div>
           <a
             href="#extension-simulator"
             className="inline-flex h-11 items-center justify-center rounded-full border border-border/80 bg-[rgba(24,24,27,0.85)] px-5 text-sm font-medium text-muted transition hover:border-foreground/70 hover:text-foreground"
