@@ -6,6 +6,7 @@ import type { PendingSubmit } from './types'
 let pendingSubmit: PendingSubmit | null = null
 
 const EXTENSION_META_NAME = 'cognitivemode-extension'
+const EXTENSION_READY_EVENT = 'cognitivemode:ready'
 
 function isLandingPage(): boolean {
   const { hostname } = window.location
@@ -21,9 +22,14 @@ function injectExtensionMetaTag(): void {
   document.head.appendChild(meta)
 }
 
+function dispatchExtensionReadyEvent(): void {
+  window.dispatchEvent(new CustomEvent(EXTENSION_READY_EVENT))
+}
+
 function init() {
   if (isLandingPage()) {
     injectExtensionMetaTag()
+    dispatchExtensionReadyEvent()
     console.debug('[Cognitive Mode] extension handshake active')
     return
   }
