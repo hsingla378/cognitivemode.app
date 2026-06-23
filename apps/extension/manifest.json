@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "description": "Introduces intentional friction into AI prompting workflows.",
   "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Cognitive Mode",

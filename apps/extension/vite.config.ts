@@ -9,6 +9,17 @@ const sharedPlugins = [react(), tailwindcss()]
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const isContentBuild = mode === 'content'
+  const isBackgroundBuild = mode === 'background'
+  const isPopupBuild = mode === 'popup'
+
+  const rollupInput = isContentBuild
+    ? resolve(__dirname, 'src/content/index.tsx')
+    : isBackgroundBuild
+      ? resolve(__dirname, 'src/background.ts')
+      : {
+          popup: resolve(__dirname, 'popup.html'),
+          history: resolve(__dirname, 'history.html'),
+        }
 
   return {
     base: './',
@@ -17,7 +28,7 @@ export default defineConfig(({ mode }) => {
       {
         name: 'copy-manifest',
         closeBundle() {
-          if (!isContentBuild) {
+          if (isPopupBuild || isBackgroundBuild) {
             copyFileSync(
               resolve(__dirname, 'manifest.json'),
               resolve(__dirname, 'dist/manifest.json'),
@@ -31,15 +42,15 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: isContentBuild,
       cssCodeSplit: false,
       rollupOptions: {
-        input: isContentBuild
-          ? resolve(__dirname, 'src/content/index.tsx')
-          : {
-              popup: resolve(__dirname, 'popup.html'),
-              history: resolve(__dirname, 'history.html'),
-            },
+        input: rollupInput,
         output: {
-          entryFileNames: isContentBuild ? 'content.js' : 'assets/[name].js',
+          entryFileNames: () => {
+            if (isContentBuild) return 'content.js'
+            if (isBackgroundBuild) return 'background.js'
+            return 'assets/[name].js'
+          },
           chunkFileNames: 'chunks/[name].js',
+          format: isBackgroundBuild ? 'iife' : undefined,
           assetFileNames: (assetInfo) => {
             if (assetInfo.names?.some((name) => name.endsWith('.css'))) {
               return isContentBuild ? 'content.css' : 'assets/[name][extname]'

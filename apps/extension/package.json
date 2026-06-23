@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --mode content && vite build --mode popup",
+    "build": "tsc -b && vite build --mode content && vite build --mode popup && vite build --mode background",
     "package": "npm run build && rm -f cognitivemode-release.zip && cd dist && zip -r ../cognitivemode-release.zip ./*",
     "lint": "eslint .",
     "test": "node --test tests/*.test.mjs",
