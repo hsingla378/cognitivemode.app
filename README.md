@@ -2,9 +2,9 @@
 
 Rebuild your problem-solving instinct before you offload to an LLM.
 
-> [!IMPORTANT]
+<!-- > [!IMPORTANT]
 > **Vibe Coding Transparency**  
-> This entire project is built using AI Vibe Coding. The irony is intentional: we are leveraging AI to build a tool that saves us from losing our cognitive edge to AI.
+> This entire project is built using AI Vibe Coding. The irony is intentional: we are leveraging AI to build a tool that saves us from losing our cognitive edge to AI. -->
 
 ## Introduction
 

@@ -4,7 +4,7 @@ Landing page and interactive product demo for [cognitivemode.app](https://cognit
 
 This app is intentionally static and local-first in its messaging: it explains the problem, lets visitors feel the Hypothesis Gate through a browser-window simulator, and points them to the unpacked Chrome extension flow until the extension is published.
 
-> Built with AI-assisted vibe coding, with the source kept explicit so the process is honest and inspectable.
+<!-- > Built with AI-assisted vibe coding, with the source kept explicit so the process is honest and inspectable. -->
 
 ## What This App Includes
 
@@ -37,10 +37,10 @@ The Vercel project should use `apps/web` as its root directory and deploy the st
 
 ## Extension Handshake
 
-When the unpacked extension is active on `cognitivemode.app` or `localhost:3000`, its content script injects:
+When the unpacked extension is active on `cognitivemode.app` or `localhost`, its content script injects:
 
 ```html
 <meta name="cognitivemode-extension" content="installed" />
 ```
 
-The landing page watches `document.head` and changes the primary CTA from `Add to Chrome` to `Extension Installed` when that tag appears.
+The landing page checks for that tag on mount and listens for the `cognitivemode:ready` window event, then changes the primary CTA from `Add to Chrome` to `Extension Installed` as soon as the extension is detected.

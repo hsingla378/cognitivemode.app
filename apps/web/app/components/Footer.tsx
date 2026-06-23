@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="mx-auto w-full max-w-5xl px-6 pb-12">
@@ -29,6 +31,13 @@ export default function Footer() {
           >
             Try Demo
           </a>
+          <span className="h-3 w-px bg-[--color-border]" />
+          <Link
+            href="/privacy"
+            className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
+          >
+            Privacy
+          </Link>
         </div>
       </div>
     </footer>
