@@ -2,9 +2,9 @@
 
 Rebuild your problem-solving instinct before you offload to an LLM.
 
-<!-- > [!IMPORTANT]
+> [!IMPORTANT]
 > **Vibe Coding Transparency**  
-> This entire project is built using AI Vibe Coding. The irony is intentional: we are leveraging AI to build a tool that saves us from losing our cognitive edge to AI. -->
+> This entire project is built using AI Vibe Coding. The irony is intentional: we are leveraging AI to build a tool that saves us from losing our cognitive edge to AI.
 
 ## Introduction
 
@@ -78,10 +78,10 @@ For local browser installation, follow the Chrome unpacked extension flow in [`a
 
 ## Roadmap
 
-- **Phase 1–5 (Web Base)**: Ship landing page, core product narrative, interactive extension simulator UX, and performance polish.
-- **Phase 6–12 (Extension Engine)**: Build the core browser extension wrapper (Manifest V3, DOM content scripts, friction layout injection, local storage state tracking).
-- **Phase 13–15 (Launch Prep)**: Polish deep linking/onboarding between the web app and extension, finalize store graphic assets, and publish to community channels.
-- **Post-Sprint Features**:
+- **Web Base**: Landing page, core product narrative, interactive extension simulator UX, privacy policy, and welcome/onboarding pages are in place.
+- **Extension Engine**: Manifest V3 wrapper, DOM content scripts, friction overlay, daily bypass, popup dashboard, local storage, full history page, and install hook are in place.
+- **Launch Prep**: Finalize Chrome Web Store listing copy, screenshots, custom store assets, and community launch materials.
+- **Post-Launch Features**:
   - Publish extension package natively to the Chrome Web Store.
   - Engineer a client-side analytics dashboard utilizing IndexedDB for local cognitive logs.
   - Expand targeted selectors for additional AI engineering interfaces.

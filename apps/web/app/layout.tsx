@@ -25,7 +25,7 @@ export const metadata: Metadata = {
       {
         url: "https://cognitivemode.app/og-image.png",
         width: 1200,
-        height: 630,
+        height: 1200,
         alt: "Cognitive Mode preview image",
       },
     ],
