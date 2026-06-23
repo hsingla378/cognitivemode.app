@@ -28,6 +28,32 @@ const DEFAULT_SETTINGS: Settings = {
   countdownDuration: DEFAULT_COUNTDOWN_DURATION,
 }
 
+function isExtensionContextInvalidated(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('Extension context invalidated')
+}
+
+async function safeStorageGet(
+  key: string,
+  fallback: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  try {
+    return chrome.storage.local.get(key)
+  } catch (error) {
+    if (isExtensionContextInvalidated(error)) return fallback
+    throw error
+  }
+}
+
+async function safeStorageSet(values: Record<string, unknown>): Promise<boolean> {
+  try {
+    await chrome.storage.local.set(values)
+    return true
+  } catch (error) {
+    if (isExtensionContextInvalidated(error)) return false
+    throw error
+  }
+}
+
 function clampCountdownDuration(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_COUNTDOWN_DURATION
   return Math.min(MAX_COUNTDOWN_DURATION, Math.max(MIN_COUNTDOWN_DURATION, Math.round(value)))
@@ -60,7 +86,7 @@ function calculateActiveStreak(logs: CognitiveEntry[]): number {
 
 async function readBypassState(): Promise<BypassState> {
   const today = getCalendarDate()
-  const { [BYPASS_KEY]: stored } = await chrome.storage.local.get(BYPASS_KEY)
+  const { [BYPASS_KEY]: stored } = await safeStorageGet(BYPASS_KEY, {})
 
   if (
     stored &&
@@ -89,18 +115,18 @@ export async function consumeDailyBypass(): Promise<boolean> {
   const state = await readBypassState()
   if (state.remaining <= 0) return false
 
-  await chrome.storage.local.set({
+  const saved = await safeStorageSet({
     [BYPASS_KEY]: {
       date: state.date,
       remaining: state.remaining - 1,
     },
   })
 
-  return true
+  return saved
 }
 
 export async function getCognitiveLogs(): Promise<CognitiveEntry[]> {
-  const { [STORAGE_KEY]: existing } = await chrome.storage.local.get(STORAGE_KEY)
+  const { [STORAGE_KEY]: existing } = await safeStorageGet(STORAGE_KEY, {})
   return Array.isArray(existing) ? existing : []
 }
 
@@ -126,7 +152,7 @@ export async function getStats(): Promise<Stats> {
 }
 
 export async function getSettings(): Promise<Settings> {
-  const { [SETTINGS_KEY]: stored } = await chrome.storage.local.get(SETTINGS_KEY)
+  const { [SETTINGS_KEY]: stored } = await safeStorageGet(SETTINGS_KEY, {})
   if (
     stored &&
     typeof stored === 'object' &&
@@ -144,7 +170,7 @@ export async function getSettings(): Promise<Settings> {
 
 export async function saveSettings(settings: Settings): Promise<void> {
   const current = await getSettings()
-  await chrome.storage.local.set({
+  await safeStorageSet({
     [SETTINGS_KEY]: {
       ...current,
       ...settings,
@@ -169,5 +195,5 @@ export async function saveCognitiveLog(
   const entries = await getCognitiveLogs()
   entries.push(entry)
 
-  await chrome.storage.local.set({ [STORAGE_KEY]: entries })
+  await safeStorageSet({ [STORAGE_KEY]: entries })
 }

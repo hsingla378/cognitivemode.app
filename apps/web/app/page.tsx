@@ -9,19 +9,28 @@ const EXTENSION_META_SELECTOR =
   'meta[name="cognitivemode-extension"][content="installed"]';
 const EXTENSION_READY_EVENT = "cognitivemode:ready";
 
+type ExtensionInstallState = "checking" | "installed" | "missing";
+
 function isExtensionInstalled(): boolean {
   if (typeof document === "undefined") return false;
   return document.querySelector(EXTENSION_META_SELECTOR) !== null;
 }
 
 export default function Home() {
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [installState, setInstallState] =
+    useState<ExtensionInstallState>("checking");
 
   useEffect(() => {
-    const markInstalled = () => setIsInstalled(true);
+    const markInstalled = () => setInstallState("installed");
+    const markMissing = () =>
+      setInstallState((current) =>
+        current === "checking" ? "missing" : current,
+      );
 
     if (isExtensionInstalled()) {
       markInstalled();
+    } else {
+      queueMicrotask(markMissing);
     }
 
     window.addEventListener(EXTENSION_READY_EVENT, markInstalled);
@@ -56,7 +65,20 @@ export default function Home() {
 
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
           <div className="flex flex-col items-center gap-2 sm:items-start">
-            {isInstalled ? (
+            {installState === "checking" ? (
+              <button
+                type="button"
+                disabled
+                aria-busy="true"
+                className="inline-flex h-11 cursor-default items-center justify-center gap-2 rounded-full border border-border/80 bg-[rgba(24,24,27,0.85)] px-6 text-sm font-medium text-muted shadow-[0_0_24px_rgba(250,250,250,0.08)] backdrop-blur-md disabled:opacity-100"
+              >
+                <span
+                  aria-hidden
+                  className="h-3.5 w-3.5 animate-spin rounded-full border border-muted/30 border-t-muted"
+                />
+                Checking extension
+              </button>
+            ) : installState === "installed" ? (
               <>
                 <button
                   type="button"
@@ -72,7 +94,7 @@ export default function Home() {
                   Pin the extension to your toolbar to view your Knowledge Base.
                 </a>
               </>
-            ) : (
+            ) : installState === "missing" ? (
               <a
                 href="https://github.com/hsingla378/cognitivemode/tree/master/apps/extension#local-chrome-install"
                 target="_blank"
@@ -81,7 +103,7 @@ export default function Home() {
               >
                 Add to Chrome — It&apos;s Free
               </a>
-            )}
+            ) : null}
           </div>
           <a
             href="#extension-simulator"

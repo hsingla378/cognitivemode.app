@@ -12,8 +12,12 @@ const interceptorSource = readFileSync(
   new URL('../src/content/interceptor.ts', import.meta.url),
   'utf8',
 )
-const contentEntrySource = readFileSync(
-  new URL('../src/content/index.tsx', import.meta.url),
+const storageSource = readFileSync(
+  new URL('../src/content/storage.ts', import.meta.url),
+  'utf8',
+)
+const backgroundSource = readFileSync(
+  new URL('../src/background.ts', import.meta.url),
   'utf8',
 )
 
@@ -21,31 +25,52 @@ function manifestUrlsFor(key) {
   return manifest[key] ?? []
 }
 
-test('manifest registers v0.app everywhere the content script needs it', () => {
-  const v0AppPattern = 'https://v0.app/*'
-
-  assert.ok(manifestUrlsFor('host_permissions').includes(v0AppPattern))
-  assert.ok(manifest.content_scripts[0].matches.includes(v0AppPattern))
-  assert.ok(manifest.web_accessible_resources[0].matches.includes(v0AppPattern))
+test('manifest host permissions are scoped to the supported AI tools', () => {
+  assert.deepEqual(manifestUrlsFor('host_permissions'), [
+    'https://chatgpt.com/*',
+    'https://claude.ai/*',
+    'https://v0.dev/*',
+    'https://bolt.new/*',
+    'https://gemini.google.com/*',
+  ])
+  assert.doesNotMatch(JSON.stringify(manifest), /<all_urls>|https:\/\/\*\/\*/)
 })
 
-test('interceptor has platform selectors for current v0.app and Bolt composers', () => {
-  assert.match(interceptorSource, /'v0\.app'/)
+test('manifest content scripts include AI tools and web handshake surfaces', () => {
+  const supportedToolPatterns = manifestUrlsFor('host_permissions')
+
+  assert.deepEqual(manifest.content_scripts[0].matches, [
+    ...supportedToolPatterns,
+    'https://cognitivemode.app/*',
+    'http://localhost/*',
+  ])
+})
+
+test('manifest web-accessible resources stay scoped to supported AI tools', () => {
+  const supportedToolPatterns = manifestUrlsFor('host_permissions')
+
+  assert.deepEqual(manifest.web_accessible_resources[0].matches, supportedToolPatterns)
+})
+
+test('interceptor has platform selectors for current v0.dev and Bolt composers', () => {
+  assert.match(interceptorSource, /'v0\.dev'/)
   assert.match(interceptorSource, /textarea\[placeholder\*="help you today" i\]/)
   assert.match(interceptorSource, /button\[aria-label\*="send" i\]/)
 })
 
-test('content script exposes extension presence to the web app hosts', () => {
-  const localhostPattern = 'http://localhost/*'
+test('background service worker sends uninstalls to the feedback page', () => {
+  assert.match(
+    backgroundSource,
+    /chrome\.runtime\.setUninstallURL\('https:\/\/cognitivemode\.app\/goodbye'\)/,
+  )
+})
 
-  assert.ok(manifestUrlsFor('host_permissions').includes(localhostPattern))
-  assert.ok(manifest.content_scripts[0].matches.includes(localhostPattern))
-  assert.match(contentEntrySource, /hostname === 'cognitivemode\.app'/)
-  assert.match(contentEntrySource, /hostname === 'localhost'/)
-  assert.match(contentEntrySource, /const EXTENSION_META_NAME = 'cognitivemode-extension'/)
-  assert.match(contentEntrySource, /meta\.name = EXTENSION_META_NAME/)
-  assert.match(contentEntrySource, /meta\.content = 'installed'/)
-  assert.match(contentEntrySource, /cognitivemode:ready/)
+test('storage helpers tolerate stale content scripts after extension reloads', () => {
+  assert.match(storageSource, /function isExtensionContextInvalidated/)
+  assert.match(storageSource, /Extension context invalidated/)
+  assert.match(storageSource, /async function safeStorageGet/)
+  assert.match(storageSource, /async function safeStorageSet/)
+  assert.match(storageSource, /return fallback/)
 })
 
 test('package script rebuilds a fresh Chrome Web Store zip from dist contents', () => {

@@ -24,22 +24,18 @@
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://claude.ai/*",
-    "https://gemini.google.com/*",
-    "https://bolt.new/*",
-    "https://v0.app/*",
     "https://v0.dev/*",
-    "https://cognitivemode.app/*",
-    "http://localhost/*"
+    "https://bolt.new/*",
+    "https://gemini.google.com/*"
   ],
   "content_scripts": [
     {
       "matches": [
         "https://chatgpt.com/*",
         "https://claude.ai/*",
-        "https://gemini.google.com/*",
-        "https://bolt.new/*",
-        "https://v0.app/*",
         "https://v0.dev/*",
+        "https://bolt.new/*",
+        "https://gemini.google.com/*",
         "https://cognitivemode.app/*",
         "http://localhost/*"
       ],
@@ -53,10 +49,9 @@
       "matches": [
         "https://chatgpt.com/*",
         "https://claude.ai/*",
-        "https://gemini.google.com/*",
+        "https://v0.dev/*",
         "https://bolt.new/*",
-        "https://v0.app/*",
-        "https://v0.dev/*"
+        "https://gemini.google.com/*"
       ]
     }
   ]
