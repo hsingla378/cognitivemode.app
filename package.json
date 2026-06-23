@@ -8,6 +8,7 @@
     "dev:web": "npm run dev -w apps/web",
     "build:web": "npm run build -w apps/web",
     "dev:ext": "npm run dev -w apps/extension",
-    "build:ext": "npm run build -w apps/extension"
+    "build:ext": "npm run build -w apps/extension",
+    "package:ext": "npm run package -w apps/extension"
   }
 }

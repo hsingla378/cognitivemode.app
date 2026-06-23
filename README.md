@@ -2,9 +2,11 @@
 
 Rebuild your problem-solving instinct before you offload to an LLM.
 
+<!--
 > [!IMPORTANT]
-> **Vibe Coding Transparency**  
+> **Vibe Coding Transparency**
 > This entire project is built using AI Vibe Coding. The irony is intentional: we are leveraging AI to build a tool that saves us from losing our cognitive edge to AI.
+-->
 
 ## Introduction
 
@@ -75,6 +77,16 @@ npm run build:ext
 This creates the unpacked Chrome extension in `apps/extension/dist`.
 
 For local browser installation, follow the Chrome unpacked extension flow in [`apps/extension/README.md`](apps/extension/README.md#local-chrome-install).
+
+### Package the Extension
+
+From the repo root:
+
+```bash
+npm run package:ext
+```
+
+This rebuilds `apps/extension/dist` and writes a fresh `apps/extension/cognitivemode-release.zip` for Chrome Web Store upload or sideloading.
 
 ## Roadmap
 

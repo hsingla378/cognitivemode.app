@@ -44,6 +44,22 @@ Then:
 4. Select `apps/extension/dist`.
 5. Refresh any open ChatGPT, Claude, v0, or local Cognitive Mode tabs.
 
+## Package for Release
+
+From the repository root:
+
+```bash
+npm run package:ext
+```
+
+Or from this workspace:
+
+```bash
+npm run package
+```
+
+Both commands rebuild `dist/` and create `cognitivemode-release.zip` with the unpacked extension contents ready for Chrome Web Store upload.
+
 ## Development Notes
 
 - Logs and settings stay local to the browser. There is no backend, telemetry, or external network dependency for the core extension behavior.

@@ -11,11 +11,11 @@ const extensionIconSource = readFileSync(
   "utf8",
 );
 
-test("README visibly discloses the vibe-coded build approach", () => {
-  assert.match(readme, /> \[!IMPORTANT\]/);
-  assert.match(readme, /\*\*Vibe Coding Transparency\*\*/);
-  assert.match(readme, /This entire project is built using AI Vibe Coding\./);
-  assert.doesNotMatch(readme, /<!--[\s\S]*Vibe Coding Transparency[\s\S]*-->/);
+test("README keeps the vibe-coded note hidden from rendered docs", () => {
+  const visibleReadme = readme.replace(/<!--[\s\S]*?-->/g, "");
+
+  assert.doesNotMatch(visibleReadme, /^> \[!IMPORTANT\]/m);
+  assert.match(readme, /<!--[\s\S]*Vibe Coding Transparency[\s\S]*-->/);
 });
 
 test("Open Graph image referenced by metadata exists in public assets", () => {
