@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import ExtensionSimulator from "./components/ExtensionSimulator";
 import FeatureGrid from "./components/FeatureGrid";
 import Footer from "./components/Footer";
@@ -44,7 +45,14 @@ export default function Home() {
     <main className="flex min-h-screen flex-col justify-center">
       <section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-10 px-6 pt-32 pb-20 text-center sm:items-start sm:text-left">
         <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-[rgba(24,24,27,0.85)] px-4 py-1 text-[11px] font-mono uppercase tracking-[0.22em] text-muted shadow-[0_0_0_1px_rgba(24,24,27,0.6)] backdrop-blur-md">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
+          <Image
+            src="/icon.svg"
+            alt="Cognitive Mode logo"
+            width={18}
+            height={18}
+            priority
+            className="h-4.5 w-4.5 rounded-[5px]"
+          />
           cognitive&nbsp;mode: <span className="font-semibold text-foreground">on</span>
         </div>
 

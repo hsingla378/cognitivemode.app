@@ -18,6 +18,11 @@ test("landing page detects extension presence from meta tag and ready event", ()
   assert.match(pageSource, /removeEventListener\(EXTENSION_READY_EVENT, markInstalled\)/);
 });
 
+test("landing page shows the shared Cognitive Mode logo", () => {
+  assert.match(pageSource, /src="\/icon\.svg"/);
+  assert.match(pageSource, /alt="Cognitive Mode logo"/);
+});
+
 test("landing page keeps CTA neutral while extension presence is checking", () => {
   assert.match(pageSource, /installState === "checking"/);
   assert.match(pageSource, /Checking extension/);

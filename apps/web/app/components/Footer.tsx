@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -6,7 +7,14 @@ export default function Footer() {
       <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
         {/* Left: brand + copyright */}
         <div className="flex flex-col items-center gap-1 sm:items-start">
-          <span className="font-mono text-xs font-semibold tracking-tight text-foreground">
+          <span className="inline-flex items-center gap-2 font-mono text-xs font-semibold tracking-tight text-foreground">
+            <Image
+              src="/icon.svg"
+              alt="Cognitive Mode logo"
+              width={18}
+              height={18}
+              className="h-[18px] w-[18px] rounded-[5px]"
+            />
             cognitivemode
           </span>
           <p className="font-mono text-[10px] text-muted/50">
