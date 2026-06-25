@@ -4,6 +4,8 @@ Manifest V3 Chrome extension for the Cognitive Mode friction loop.
 
 It intercepts prompt submissions on supported AI tools, asks the user to write a short hypothesis and what they already tried, waits for the configured delay, and stores the resulting cognitive log locally with `chrome.storage.local`.
 
+Install the live extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh).
+
 ## Supported Surfaces
 
 - ChatGPT: `chatgpt.com`
@@ -27,7 +29,11 @@ apps/extension/
 `- vite.config.ts             # Stable extension build outputs
 ```
 
-## Local Chrome Install
+## Chrome Install
+
+Install Cognitive Mode from the [Chrome Web Store](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh), then visit the welcome page to pin it and try your first speedbump.
+
+## Local Development Install
 
 From the repository root:
 
@@ -65,4 +71,4 @@ Both commands rebuild `dist/` and create `cognitivemode-release.zip` with the un
 - Logs and settings stay local to the browser. There is no backend, telemetry, or external network dependency for the core extension behavior.
 - The popup slider stores a custom friction delay from 5 to 60 seconds.
 - Build output uses stable filenames because MV3 manifests cannot point at hashed content-script names.
-- The extension is not published to the Chrome Web Store yet; the local unpacked flow above is the current install path.
+- The Chrome Web Store listing is the user install path; the unpacked flow above is for local development and release verification.

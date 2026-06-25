@@ -5,6 +5,16 @@ import { test } from "node:test";
 
 const repoRoot = resolve(new URL("../../..", import.meta.url).pathname);
 const readme = readFileSync(resolve(repoRoot, "README.md"), "utf8");
+const webReadme = readFileSync(resolve(repoRoot, "apps/web/README.md"), "utf8");
+const extensionReadme = readFileSync(
+  resolve(repoRoot, "apps/extension/README.md"),
+  "utf8",
+);
+const homePageSource = readFileSync(resolve(repoRoot, "apps/web/app/page.tsx"), "utf8");
+const footerSource = readFileSync(
+  resolve(repoRoot, "apps/web/app/components/Footer.tsx"),
+  "utf8",
+);
 const layoutSource = readFileSync(resolve(repoRoot, "apps/web/app/layout.tsx"), "utf8");
 const extensionIconSource = readFileSync(
   resolve(repoRoot, "apps/extension/public/icon.svg"),
@@ -53,4 +63,28 @@ test("site metadata includes canonical, app identity, and crawl routes", () => {
   assert.match(sitemapSource, /\/privacy/);
   assert.match(sitemapSource, /\/welcome/);
   assert.match(sitemapSource, /\/goodbye/);
+});
+
+test("public docs describe the published Chrome Web Store install path", () => {
+  for (const source of [readme, webReadme, extensionReadme]) {
+    assert.match(source, /Chrome Web Store/);
+    assert.doesNotMatch(source, /not published to the Chrome Web Store/i);
+    assert.doesNotMatch(source, /until the extension is published/i);
+    assert.doesNotMatch(source, /current install path/i);
+  }
+
+  assert.match(
+    extensionReadme,
+    /https:\/\/chromewebstore\.google\.com\/detail\/cognitive-mode\/hlflicjdpooonfjaciliblnmhkdmakgh/,
+  );
+});
+
+test("public GitHub links point to the public repository", () => {
+  for (const source of [homePageSource, footerSource]) {
+    assert.match(
+      source,
+      /href="https:\/\/github\.com\/hsingla378\/cognitivemode\.app"/,
+    );
+    assert.doesNotMatch(source, /github\.com\/hsingla378\/cognitivemode"/);
+  }
 });

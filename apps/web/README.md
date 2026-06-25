@@ -2,7 +2,7 @@
 
 Landing page and interactive product demo for [cognitivemode.app](https://cognitivemode.app).
 
-This app is intentionally static and local-first in its messaging: it explains the problem, lets visitors feel the Hypothesis Gate through a browser-window simulator, and points them to the unpacked Chrome extension flow until the extension is published.
+This app is intentionally static and local-first in its messaging: it explains the problem, lets visitors feel the Hypothesis Gate through a browser-window simulator, and points them to the published [Chrome Web Store listing](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh).
 
 <!-- > Built with AI-assisted vibe coding, with the source kept explicit so the process is honest and inspectable. -->
 
@@ -37,7 +37,7 @@ The Vercel project should use `apps/web` as its root directory and deploy the st
 
 ## Extension Handshake
 
-When the unpacked extension is active on `cognitivemode.app` or `localhost`, its content script injects:
+When the Chrome Web Store extension, or a local development build, is active on `cognitivemode.app` or `localhost`, its content script injects:
 
 ```html
 <meta name="cognitivemode-extension" content="installed" />

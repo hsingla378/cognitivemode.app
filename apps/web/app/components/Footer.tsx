@@ -25,7 +25,7 @@ export default function Footer() {
         {/* Right: links */}
         <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
           <a
-            href="https://github.com/hsingla378/cognitivemode"
+            href="https://github.com/hsingla378/cognitivemode.app"
             target="_blank"
             rel="noreferrer"
             className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
