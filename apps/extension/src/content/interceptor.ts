@@ -124,12 +124,12 @@ function createPendingSubmit(
   input: HTMLElement,
   buttonSelector: string,
 ): PendingSubmit {
-  const sendButton = findSendButton(input, buttonSelector)
-
   return {
     input,
     trigger: () => {
-      if (sendButton && !isSendDisabled(sendButton)) {
+      const sendButton = findSendButton(input, buttonSelector)
+
+      if (sendButton && sendButton.isConnected && isVisible(sendButton) && !isSendDisabled(sendButton)) {
         sendButton.click()
         return
       }

@@ -61,10 +61,6 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
   const visible = pending !== null && !hidden
 
   useEffect(() => {
-    if (!pending) setFocusedField(null)
-  }, [pending])
-
-  useEffect(() => {
     let cancelled = false
 
     void getSettings().then((settings) => {
@@ -88,6 +84,7 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
+        e.stopImmediatePropagation()
         e.stopPropagation()
       }
     }

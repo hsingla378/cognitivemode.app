@@ -58,6 +58,34 @@ test('interceptor has platform selectors for current v0.dev and Bolt composers',
   assert.match(interceptorSource, /button\[aria-label\*="send" i\]/)
 })
 
+test('pending submit re-resolves the send button after the overlay delay', () => {
+  const createPendingSubmitSource = interceptorSource.match(
+    /function createPendingSubmit[\s\S]*?\n}\n\nconst noopHandle/,
+  )?.[0]
+
+  assert.ok(createPendingSubmitSource, 'Expected createPendingSubmit implementation')
+  assert.doesNotMatch(
+    createPendingSubmitSource,
+    /const sendButton = findSendButton\(input, buttonSelector\)\n\n\s*return \{/,
+  )
+  assert.match(
+    createPendingSubmitSource,
+    /trigger:\s*\(\) => \{\s*const sendButton = findSendButton\(input, buttonSelector\)/,
+  )
+  assert.match(createPendingSubmitSource, /sendButton\.isConnected/)
+  assert.match(createPendingSubmitSource, /isVisible\(sendButton\)/)
+})
+
+test('overlay escape trap stops later page key handlers on the same target', () => {
+  const overlaySource = readFileSync(
+    new URL('../src/content/Overlay.tsx', import.meta.url),
+    'utf8',
+  )
+
+  assert.match(overlaySource, /e\.key === 'Escape'/)
+  assert.match(overlaySource, /e\.stopImmediatePropagation\(\)/)
+})
+
 test('background service worker sends uninstalls to the feedback page', () => {
   assert.match(
     backgroundSource,
