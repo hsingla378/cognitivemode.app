@@ -33,3 +33,14 @@ test("landing page shows installed CTA and toolbar pin hint", () => {
   assert.match(pageSource, /Extension Installed ✓/);
   assert.match(pageSource, /Pin the extension to your toolbar/);
 });
+
+test("landing page links missing-state CTA to the Chrome Web Store", () => {
+  assert.match(
+    pageSource,
+    /const CHROME_WEB_STORE_URL =\s*"https:\/\/chromewebstore\.google\.com\/detail\/cognitive-mode\/hlflicjdpooonfjaciliblnmhkdmakgh"/,
+  );
+  assert.match(pageSource, /href=\{CHROME_WEB_STORE_URL\}/);
+  assert.match(pageSource, /installState === "missing"/);
+  assert.match(pageSource, /target="_blank"/);
+  assert.match(pageSource, /rel="noopener noreferrer"/);
+});

@@ -9,6 +9,8 @@ import Footer from "./components/Footer";
 const EXTENSION_META_SELECTOR =
   'meta[name="cognitivemode-extension"][content="installed"]';
 const EXTENSION_READY_EVENT = "cognitivemode:ready";
+const CHROME_WEB_STORE_URL =
+  "https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh";
 
 type ExtensionInstallState = "checking" | "installed" | "missing";
 
@@ -104,9 +106,9 @@ export default function Home() {
               </>
             ) : installState === "missing" ? (
               <a
-                href="https://github.com/hsingla378/cognitivemode/tree/master/apps/extension#local-chrome-install"
+                href={CHROME_WEB_STORE_URL}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="inline-flex h-11 items-center justify-center rounded-full border border-emerald-400/60 bg-[rgba(16,185,129,0.08)] px-6 text-sm font-medium text-foreground shadow-[0_0_24px_rgba(16,185,129,0.4)] backdrop-blur-md transition hover:border-emerald-300 hover:bg-[rgba(16,185,129,0.15)]"
               >
                 Add to Chrome — It&apos;s Free
