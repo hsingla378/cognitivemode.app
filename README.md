@@ -1,5 +1,7 @@
 # Cognitive Mode
 
+[![Available in the Chrome Web Store](https://raw.githubusercontent.com/GoogleChrome/webstore-docs/master/images/ChromeWebStore_BadgeWBorder_v2_206x58.png)](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh)
+
 Rebuild your problem-solving instinct before you offload to an LLM.
 
 <!--
@@ -92,8 +94,8 @@ This rebuilds `apps/extension/dist` and writes a fresh `apps/extension/cognitive
 
 - **Web Base**: Landing page, core product narrative, interactive extension simulator UX, privacy policy, and welcome/onboarding pages are in place.
 - **Extension Engine**: Manifest V3 wrapper, DOM content scripts, friction overlay, daily bypass, popup dashboard, local storage, full history page, and install hook are in place.
+- **Chrome Web Store**: Extension published natively to the Chrome Web Store.
 - **Launch Prep**: Finalize Chrome Web Store listing copy, screenshots, custom store assets, and community launch materials.
 - **Post-Launch Features**:
-  - Publish extension package natively to the Chrome Web Store.
   - Engineer a client-side analytics dashboard utilizing IndexedDB for local cognitive logs.
   - Expand targeted selectors for additional AI engineering interfaces.
