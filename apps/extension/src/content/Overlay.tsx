@@ -59,7 +59,19 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
       setSecondsLeft((prev) => (prev <= 1 ? 0 : prev - 1))
     }, 1000)
 
-    return () => clearInterval(intervalId)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown, true)
+
+    return () => {
+      clearInterval(intervalId)
+      window.removeEventListener('keydown', handleKeyDown, true)
+    }
   }, [pending, countdownDuration])
 
   useEffect(() => {
