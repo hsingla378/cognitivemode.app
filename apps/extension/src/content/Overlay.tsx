@@ -1,9 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FocusEvent } from 'react'
 import { consumeDailyBypass, getBypasses, getSettings } from './storage'
 import type { PendingSubmit } from './types'
 
 const DEFAULT_COUNTDOWN_SECONDS = 15
 const MIN_CHARS = 10
+const GATE_TEXTAREA_IDS = new Set(['cognitive-hypothesis', 'cognitive-tried'])
+
+type GateField = 'hypothesis' | 'tried'
+
+function gateTextareaClassName(expanded: boolean): string {
+  return `friction-textarea w-full resize-none border-0 border-b border-white/10 bg-transparent px-0 py-2.5 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-600 outline-none transition-[height,border-color,box-shadow] duration-300 ease-in-out focus:border-white/30 focus:shadow-[0_1px_0_0_rgba(255,255,255,0.35)] ${
+    expanded ? 'h-28 overflow-y-auto' : 'h-11 overflow-hidden'
+  }`
+}
+
+function handleGateTextareaBlur(
+  e: FocusEvent<HTMLTextAreaElement>,
+  setFocusedField: (field: GateField | null) => void,
+) {
+  const relatedId = (e.relatedTarget as HTMLElement | null)?.id
+  if (relatedId && GATE_TEXTAREA_IDS.has(relatedId)) return
+  setFocusedField(null)
+}
 
 export interface HypothesisGateData {
   hypothesis: string
@@ -31,12 +49,20 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
   const [submitting, setSubmitting] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [bypassesLeft, setBypassesLeft] = useState(0)
+  const [focusedField, setFocusedField] = useState<GateField | null>(null)
+
+  const hypothesisExpanded = focusedField === 'hypothesis'
+  const triedExpanded = focusedField === 'tried'
 
   const timerDone = secondsLeft === 0
   const hypothesisValid = hypothesis.trim().length >= MIN_CHARS
   const triedValid = tried.trim().length >= MIN_CHARS
   const canUnlock = timerDone && hypothesisValid && triedValid && !submitting
   const visible = pending !== null && !hidden
+
+  useEffect(() => {
+    if (!pending) setFocusedField(null)
+  }, [pending])
 
   useEffect(() => {
     let cancelled = false
@@ -197,9 +223,11 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
                 id="cognitive-hypothesis"
                 value={hypothesis}
                 onChange={(e) => setHypothesis(e.target.value)}
-                rows={5}
+                onFocus={() => setFocusedField('hypothesis')}
+                onBlur={(e) => handleGateTextareaBlur(e, setFocusedField)}
+                rows={hypothesisExpanded ? 4 : 1}
                 placeholder="I think the issue is…"
-                className="friction-textarea w-full resize-none border-0 border-b border-white/10 bg-transparent px-0 py-2.5 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-600 outline-none transition-[border-color,box-shadow] duration-200 focus:border-white/30 focus:shadow-[0_1px_0_0_rgba(255,255,255,0.35)]"
+                className={gateTextareaClassName(hypothesisExpanded)}
               />
               <p
                 className={`font-mono text-xs tabular-nums ${
@@ -221,9 +249,11 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
                 id="cognitive-tried"
                 value={tried}
                 onChange={(e) => setTried(e.target.value)}
-                rows={5}
+                onFocus={() => setFocusedField('tried')}
+                onBlur={(e) => handleGateTextareaBlur(e, setFocusedField)}
+                rows={triedExpanded ? 4 : 1}
                 placeholder="I already checked…"
-                className="friction-textarea w-full resize-none border-0 border-b border-white/10 bg-transparent px-0 py-2.5 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-600 outline-none transition-[border-color,box-shadow] duration-200 focus:border-white/30 focus:shadow-[0_1px_0_0_rgba(255,255,255,0.35)]"
+                className={gateTextareaClassName(triedExpanded)}
               />
               <p
                 className={`font-mono text-xs tabular-nums ${
