@@ -89,6 +89,17 @@ test('pending submit re-resolves the send button after the overlay delay', () =>
   assert.match(createPendingSubmitSource, /isVisible\(sendButton\)/)
 })
 
+test('interceptor always relocks after replaying a pending submit', () => {
+  const unlockSource = interceptorSource.match(
+    /const unlock = \(submit\?: \(\) => void\) => \{[\s\S]*?\n  \}/,
+  )?.[0]
+
+  assert.ok(unlockSource, 'Expected unlock implementation')
+  assert.match(unlockSource, /try \{[\s\S]*submit\?\.\(\)/)
+  assert.match(unlockSource, /finally \{[\s\S]*window\.setTimeout/)
+  assert.match(unlockSource, /isUnlocked = false/)
+})
+
 test('overlay escape trap stops later page key handlers on the same target', () => {
   const overlaySource = readFileSync(
     new URL('../src/content/Overlay.tsx', import.meta.url),
@@ -123,6 +134,35 @@ test('overlay exposes a self-solved action after the gate unlocks', () => {
   assert.match(overlaySource, /onSelfSolved/)
   assert.match(overlaySource, /handleSelfSolved/)
   assert.match(overlaySource, /I figured it out/)
+})
+
+test('overlay requires detailed 40-character gate responses', () => {
+  const overlaySource = readFileSync(
+    new URL('../src/content/Overlay.tsx', import.meta.url),
+    'utf8',
+  )
+
+  assert.match(overlaySource, /const MIN_CHARS = 40/)
+  assert.match(
+    overlaySource,
+    /placeholder="e\.g\. I think the bug is in the useEffect cleanup, because it only happens on unmount"/,
+  )
+  assert.match(
+    overlaySource,
+    /placeholder="e\.g\. Added console logs, checked the network tab, tried removing the dependency array"/,
+  )
+  assert.match(overlaySource, /\{hypothesis\.trim\(\)\.length\}\/\{MIN_CHARS\} chars/)
+  assert.match(overlaySource, /\{tried\.trim\(\)\.length\}\/\{MIN_CHARS\} chars/)
+})
+
+test('overlay collapsed textareas fit multi-line placeholders', () => {
+  const overlaySource = readFileSync(
+    new URL('../src/content/Overlay.tsx', import.meta.url),
+    'utf8',
+  )
+
+  assert.match(overlaySource, /expanded \? 'h-28 overflow-y-auto' : 'h-24 overflow-y-hidden'/)
+  assert.doesNotMatch(overlaySource, /expanded \? 'h-28 overflow-y-auto' : 'h-11 overflow-hidden'/)
 })
 
 test('popup dashboard reads and displays self-solved stats', () => {

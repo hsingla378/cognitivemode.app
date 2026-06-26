@@ -185,10 +185,13 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
   const unlock = (submit?: () => void) => {
     isUnlocked = true
     isIntercepting = false
-    submit?.()
-    window.setTimeout(() => {
-      isUnlocked = false
-    }, 0)
+    try {
+      submit?.()
+    } finally {
+      window.setTimeout(() => {
+        isUnlocked = false
+      }, 0)
+    }
   }
 
   const releaseIntercept = () => {

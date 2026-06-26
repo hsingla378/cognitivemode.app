@@ -3,14 +3,14 @@ import { consumeDailyBypass, getBypasses, getSettings } from './storage'
 import type { PendingSubmit } from './types'
 
 const DEFAULT_COUNTDOWN_SECONDS = 15
-const MIN_CHARS = 10
+const MIN_CHARS = 40
 const GATE_TEXTAREA_IDS = new Set(['cognitive-hypothesis', 'cognitive-tried'])
 
 type GateField = 'hypothesis' | 'tried'
 
 function gateTextareaClassName(expanded: boolean): string {
   return `friction-textarea w-full resize-none border-0 border-b border-white/10 bg-transparent px-0 py-2.5 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-600 outline-none transition-[height,border-color,box-shadow] duration-300 ease-in-out focus:border-white/30 focus:shadow-[0_1px_0_0_rgba(255,255,255,0.35)] ${
-    expanded ? 'h-28 overflow-y-auto' : 'h-11 overflow-hidden'
+    expanded ? 'h-28 overflow-y-auto' : 'h-24 overflow-y-hidden'
   }`
 }
 
@@ -244,7 +244,7 @@ export default function FrictionOverlay({
                 onFocus={() => setFocusedField('hypothesis')}
                 onBlur={(e) => handleGateTextareaBlur(e, setFocusedField)}
                 rows={hypothesisExpanded ? 4 : 1}
-                placeholder="I think the issue is…"
+                placeholder="e.g. I think the bug is in the useEffect cleanup, because it only happens on unmount"
                 className={gateTextareaClassName(hypothesisExpanded)}
               />
               <p
@@ -270,7 +270,7 @@ export default function FrictionOverlay({
                 onFocus={() => setFocusedField('tried')}
                 onBlur={(e) => handleGateTextareaBlur(e, setFocusedField)}
                 rows={triedExpanded ? 4 : 1}
-                placeholder="I already checked…"
+                placeholder="e.g. Added console logs, checked the network tab, tried removing the dependency array"
                 className={gateTextareaClassName(triedExpanded)}
               />
               <p
