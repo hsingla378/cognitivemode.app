@@ -3,6 +3,7 @@ import type { CognitiveEntry } from './types'
 const STORAGE_KEY = 'cognitive_entries'
 const SETTINGS_KEY = 'cognitive_settings'
 const BYPASS_KEY = 'cognitive_daily_bypass'
+const SELF_SOLVED_STATS_KEY = 'cognitivemode_stats'
 const DAILY_BYPASS_LIMIT = 1
 const DEFAULT_COUNTDOWN_DURATION = 15
 const MIN_COUNTDOWN_DURATION = 5
@@ -17,6 +18,21 @@ export interface Stats {
   totalInterceptions: number
   timeSavedThinking: string
   activeStreak: number
+}
+
+export interface SelfSolvedHistoryEntry {
+  date: string
+  domain: string
+  hypothesis: string
+}
+
+export interface SelfSolvedStats {
+  totalGatesTriggered: number
+  totalSelfSolved: number
+  currentStreak: number
+  longestStreak: number
+  lastSelfSolvedDate: string
+  selfSolvedHistory: SelfSolvedHistoryEntry[]
 }
 
 interface BypassState {
@@ -71,6 +87,13 @@ function formatCalendarDate(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
+function getPreviousCalendarDate(date: string): string {
+  const [year, month, day] = date.split('-').map(Number)
+  const previous = new Date(year, month - 1, day)
+  previous.setDate(previous.getDate() - 1)
+  return formatCalendarDate(previous)
+}
+
 function calculateActiveStreak(logs: CognitiveEntry[]): number {
   const loggedDates = new Set(logs.map((entry) => formatCalendarDate(new Date(entry.timestamp))))
   const cursor = new Date()
@@ -82,6 +105,82 @@ function calculateActiveStreak(logs: CognitiveEntry[]): number {
   }
 
   return streak
+}
+
+export function createDefaultSelfSolvedStats(): SelfSolvedStats {
+  return {
+    totalGatesTriggered: 0,
+    totalSelfSolved: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastSelfSolvedDate: '',
+    selfSolvedHistory: [],
+  }
+}
+
+function isSelfSolvedHistoryEntry(value: unknown): value is SelfSolvedHistoryEntry {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'date' in value &&
+    'domain' in value &&
+    'hypothesis' in value &&
+    typeof value.date === 'string' &&
+    typeof value.domain === 'string' &&
+    typeof value.hypothesis === 'string'
+  )
+}
+
+function readNumber(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0
+}
+
+function normalizeSelfSolvedStats(value: unknown): SelfSolvedStats {
+  const defaults = createDefaultSelfSolvedStats()
+  if (!value || typeof value !== 'object') return defaults
+
+  const stored = value as Partial<SelfSolvedStats>
+  const history = Array.isArray(stored.selfSolvedHistory)
+    ? stored.selfSolvedHistory.filter(isSelfSolvedHistoryEntry)
+    : defaults.selfSolvedHistory
+
+  return {
+    totalGatesTriggered: readNumber(stored.totalGatesTriggered),
+    totalSelfSolved: readNumber(stored.totalSelfSolved),
+    currentStreak: readNumber(stored.currentStreak),
+    longestStreak: readNumber(stored.longestStreak),
+    lastSelfSolvedDate:
+      typeof stored.lastSelfSolvedDate === 'string' ? stored.lastSelfSolvedDate : '',
+    selfSolvedHistory: history,
+  }
+}
+
+export function updateSelfSolvedStats(
+  current: SelfSolvedStats,
+  event: SelfSolvedHistoryEntry,
+): SelfSolvedStats {
+  const previousDate = current.lastSelfSolvedDate
+  let currentStreak = 1
+
+  if (previousDate === event.date) {
+    currentStreak = current.currentStreak
+  } else if (previousDate === getPreviousCalendarDate(event.date)) {
+    currentStreak = current.currentStreak + 1
+  }
+
+  return {
+    ...current,
+    totalGatesTriggered: Math.max(current.totalGatesTriggered, current.totalSelfSolved + 1),
+    totalSelfSolved: current.totalSelfSolved + 1,
+    currentStreak,
+    longestStreak: Math.max(current.longestStreak, currentStreak),
+    lastSelfSolvedDate: event.date,
+    selfSolvedHistory: [...current.selfSolvedHistory, event],
+  }
+}
+
+export function countSelfSolvedOnDate(stats: SelfSolvedStats, date = getCalendarDate()): number {
+  return stats.selfSolvedHistory.filter((entry) => entry.date === date).length
 }
 
 async function readBypassState(): Promise<BypassState> {
@@ -151,6 +250,21 @@ export async function getStats(): Promise<Stats> {
   }
 }
 
+export async function getSelfSolvedStats(): Promise<SelfSolvedStats> {
+  const { [SELF_SOLVED_STATS_KEY]: stored } = await safeStorageGet(SELF_SOLVED_STATS_KEY, {})
+  return normalizeSelfSolvedStats(stored)
+}
+
+export async function recordGateTriggered(): Promise<void> {
+  const stats = await getSelfSolvedStats()
+  await safeStorageSet({
+    [SELF_SOLVED_STATS_KEY]: {
+      ...stats,
+      totalGatesTriggered: stats.totalGatesTriggered + 1,
+    },
+  })
+}
+
 export async function getSettings(): Promise<Settings> {
   const { [SETTINGS_KEY]: stored } = await safeStorageGet(SETTINGS_KEY, {})
   if (
@@ -196,4 +310,17 @@ export async function saveCognitiveLog(
   entries.push(entry)
 
   await safeStorageSet({ [STORAGE_KEY]: entries })
+}
+
+export async function recordSelfSolved(hypothesis: string): Promise<void> {
+  const stats = await getSelfSolvedStats()
+  const event: SelfSolvedHistoryEntry = {
+    date: getCalendarDate(),
+    domain: location.hostname,
+    hypothesis,
+  }
+
+  await safeStorageSet({
+    [SELF_SOLVED_STATS_KEY]: updateSelfSolvedStats(stats, event),
+  })
 }

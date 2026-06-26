@@ -35,6 +35,7 @@ test('manifest host permissions are scoped to the supported AI tools', () => {
     'https://cursor.com/*',
     'https://windsurf.com/*',
     'https://perplexity.ai/*',
+    'https://www.perplexity.ai/*',
   ])
   assert.doesNotMatch(JSON.stringify(manifest), /<all_urls>|https:\/\/\*\/\*/)
 })
@@ -111,6 +112,38 @@ test('storage helpers tolerate stale content scripts after extension reloads', (
   assert.match(storageSource, /async function safeStorageGet/)
   assert.match(storageSource, /async function safeStorageSet/)
   assert.match(storageSource, /return fallback/)
+})
+
+test('overlay exposes a self-solved action after the gate unlocks', () => {
+  const overlaySource = readFileSync(
+    new URL('../src/content/Overlay.tsx', import.meta.url),
+    'utf8',
+  )
+
+  assert.match(overlaySource, /onSelfSolved/)
+  assert.match(overlaySource, /handleSelfSolved/)
+  assert.match(overlaySource, /I figured it out/)
+})
+
+test('popup dashboard reads and displays self-solved stats', () => {
+  const popupSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8')
+
+  assert.match(popupSource, /getSelfSolvedStats/)
+  assert.match(popupSource, /Self-solved today/)
+  assert.match(popupSource, /Current streak/)
+  assert.match(popupSource, /All time/)
+})
+
+test('popup layout leaves room for history after self-solved stats', () => {
+  const popupSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8')
+  const popupCss = readFileSync(new URL('../src/App.css', import.meta.url), 'utf8')
+
+  assert.match(popupSource, /h-\[520px\] w-\[360px\]/)
+  assert.match(popupCss, /width:\s*360px/)
+  assert.match(popupCss, /height:\s*520px/)
+  assert.match(popupSource, /grid grid-cols-3 gap-2 text-xs/)
+  assert.match(popupSource, /flex min-h-\[120px\] flex-1 flex-col/)
+  assert.match(popupSource, /View Full History/)
 })
 
 test('package script rebuilds a fresh Chrome Web Store zip from dist contents', () => {

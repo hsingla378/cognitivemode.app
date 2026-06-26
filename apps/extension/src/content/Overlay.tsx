@@ -32,6 +32,7 @@ export interface HypothesisGateData {
 interface FrictionOverlayProps {
   pending: PendingSubmit | null
   onSubmit: (data: HypothesisGateData) => void | Promise<void>
+  onSelfSolved: (data: HypothesisGateData) => void | Promise<void>
   onDismiss: () => void
 }
 
@@ -41,7 +42,12 @@ function formatCountdown(seconds: number): string {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
-export default function FrictionOverlay({ pending, onSubmit, onDismiss }: FrictionOverlayProps) {
+export default function FrictionOverlay({
+  pending,
+  onSubmit,
+  onSelfSolved,
+  onDismiss,
+}: FrictionOverlayProps) {
   const [hypothesis, setHypothesis] = useState('')
   const [tried, setTried] = useState('')
   const [countdownDuration, setCountdownDuration] = useState(DEFAULT_COUNTDOWN_SECONDS)
@@ -117,6 +123,21 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
     setHidden(true)
     try {
       await onSubmit({
+        hypothesis: hypothesis.trim(),
+        tried: tried.trim(),
+        durationSeconds: countdownDuration,
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleSelfSolved() {
+    if (!canUnlock) return
+    setSubmitting(true)
+    setHidden(true)
+    try {
+      await onSelfSolved({
         hypothesis: hypothesis.trim(),
         tried: tried.trim(),
         durationSeconds: countdownDuration,
@@ -275,6 +296,16 @@ export default function FrictionOverlay({ pending, onSubmit, onDismiss }: Fricti
             >
               {submitting ? 'Unlocking…' : 'Unlock Prompt'}
             </button>
+            {canUnlock && (
+              <button
+                type="button"
+                onClick={handleSelfSolved}
+                disabled={submitting}
+                className="text-xs font-medium text-zinc-500 transition hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                ✓ I figured it out
+              </button>
+            )}
             {bypassesLeft > 0 && (
               <button
                 type="button"

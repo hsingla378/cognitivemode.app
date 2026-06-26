@@ -3,8 +3,8 @@
 body.popup-page,
 body.popup-page #root {
   margin: 0;
-  width: 320px;
-  height: 384px;
+  width: 360px;
+  height: 520px;
   overflow: hidden;
   background: #09090b;
 }

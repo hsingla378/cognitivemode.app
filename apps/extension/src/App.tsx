@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
+  countSelfSolvedOnDate,
   getCognitiveLogs,
+  getSelfSolvedStats,
   getSettings,
   getStats,
   saveSettings,
+  type SelfSolvedStats,
   type Stats,
 } from './content/storage'
 import type { CognitiveEntry } from './content/types'
@@ -36,6 +39,7 @@ function buildShareTweetUrl(stats: Stats): string {
 
 function App() {
   const [stats, setStats] = useState<Stats | null>(null)
+  const [selfSolvedStats, setSelfSolvedStats] = useState<SelfSolvedStats | null>(null)
   const [recentLogs, setRecentLogs] = useState<CognitiveEntry[]>([])
   const [frictionDelay, setFrictionDelay] = useState(FRICTION_DELAY_DEFAULT)
 
@@ -43,14 +47,16 @@ function App() {
     let cancelled = false
 
     async function loadDashboard() {
-      const [nextStats, logs, settings] = await Promise.all([
+      const [nextStats, nextSelfSolvedStats, logs, settings] = await Promise.all([
         getStats(),
+        getSelfSolvedStats(),
         getCognitiveLogs(),
         getSettings(),
       ])
       if (cancelled) return
 
       setStats(nextStats)
+      setSelfSolvedStats(nextSelfSolvedStats)
       setRecentLogs(logs.slice(-3).reverse())
       setFrictionDelay(
         Math.min(FRICTION_DELAY_MAX, Math.max(FRICTION_DELAY_MIN, settings.countdownDuration)),
@@ -75,8 +81,13 @@ function App() {
     chrome.tabs.create({ url: buildShareTweetUrl(stats) })
   }
 
+  const selfSolvedToday = selfSolvedStats ? countSelfSolvedOnDate(selfSolvedStats) : null
+  const currentSelfSolvedStreak = selfSolvedStats?.currentStreak ?? null
+  const streakSuffix =
+    currentSelfSolvedStreak !== null && currentSelfSolvedStreak >= 2 ? ' 🔥' : ''
+
   return (
-    <div className="flex h-96 w-80 flex-col bg-zinc-950 text-zinc-100">
+    <div className="flex h-[520px] w-[360px] flex-col bg-zinc-950 text-zinc-100">
       <header className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
         <h1 className="text-sm font-semibold tracking-tight">Cognitive Mode</h1>
         <div className="flex items-center gap-1.5 text-xs text-zinc-400">
@@ -85,9 +96,9 @@ function App() {
         </div>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col gap-4 px-4 py-4">
+      <main className="flex min-h-0 flex-1 flex-col gap-3 px-4 py-4">
         <section className="grid grid-cols-3 gap-2">
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
               Intercepted
             </p>
@@ -95,7 +106,7 @@ function App() {
               {stats?.totalInterceptions ?? '—'}
             </p>
           </div>
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5">
             <div className="flex items-start justify-between gap-1">
               <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
                 Think Time
@@ -121,7 +132,7 @@ function App() {
               {stats?.timeSavedThinking ?? '—'}
             </p>
           </div>
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5">
             <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
               Streak
             </p>
@@ -131,7 +142,35 @@ function App() {
           </div>
         </section>
 
-        <section className="flex min-h-0 flex-1 flex-col">
+        <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+          <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+            Self-solved
+          </h2>
+          <div className="grid grid-cols-3 gap-2 text-xs text-zinc-400">
+            <p className="min-w-0">
+              <span>Self-solved today:</span>
+              <span className="mt-1 block font-mono tabular-nums text-zinc-100">
+                {selfSolvedToday ?? '—'}
+              </span>
+            </p>
+            <p className="min-w-0">
+              <span>Current streak:</span>
+              <span className="mt-1 block font-mono tabular-nums text-zinc-100">
+                {currentSelfSolvedStreak ?? '—'}
+                {currentSelfSolvedStreak !== null ? ` days${streakSuffix}` : ''}
+              </span>
+            </p>
+            <p className="min-w-0">
+              <span>All time:</span>
+              <span className="mt-1 block font-mono tabular-nums text-zinc-100">
+                {selfSolvedStats?.totalSelfSolved ?? '—'}
+                <span className="block text-[10px] text-zinc-500">solved without AI</span>
+              </span>
+            </p>
+          </div>
+        </section>
+
+        <section className="flex min-h-[120px] flex-1 flex-col">
           <div className="mb-2 flex items-center justify-between gap-2">
             <h2 className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
               Recent Activity

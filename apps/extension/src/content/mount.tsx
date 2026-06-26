@@ -9,6 +9,7 @@ const FADE_MS = 500
 
 interface MountOptions {
   onSubmit: (data: HypothesisGateData) => void | Promise<void>
+  onSelfSolved: (data: HypothesisGateData) => void | Promise<void>
   onDismiss: () => void
 }
 
@@ -52,6 +53,14 @@ export function mountOverlay(options: MountOptions): OverlayController {
         pending={pending}
         onSubmit={async (data) => {
           await options.onSubmit(data)
+          window.setTimeout(() => {
+            pending = null
+            overlayVersion += 1
+            render()
+          }, FADE_MS)
+        }}
+        onSelfSolved={async (data) => {
+          await options.onSelfSolved(data)
           window.setTimeout(() => {
             pending = null
             overlayVersion += 1

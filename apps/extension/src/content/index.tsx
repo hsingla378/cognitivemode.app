@@ -1,6 +1,6 @@
 import { initInterceptor } from './interceptor'
 import { mountOverlay } from './mount'
-import { saveCognitiveLog } from './storage'
+import { recordGateTriggered, recordSelfSolved, saveCognitiveLog } from './storage'
 import type { PendingSubmit } from './types'
 
 let pendingSubmit: PendingSubmit | null = null
@@ -42,6 +42,12 @@ function init() {
       await saveCognitiveLog(hypothesis, tried, durationSeconds)
       interceptor.unlock(submit?.trigger)
     },
+    async onSelfSolved({ hypothesis }) {
+      pendingSubmit = null
+
+      await recordSelfSolved(hypothesis)
+      interceptor.releaseIntercept()
+    },
     onDismiss() {
       pendingSubmit = null
       interceptor.releaseIntercept()
@@ -50,6 +56,7 @@ function init() {
 
   const interceptor = initInterceptor((pending) => {
     pendingSubmit = pending
+    void recordGateTriggered()
     overlay.show(pending)
   })
 
