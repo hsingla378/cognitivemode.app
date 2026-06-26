@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Cognitive Mode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Introduces intentional friction into AI prompting workflows.",
   "permissions": ["storage"],
   "background": {
@@ -26,7 +26,10 @@
     "https://claude.ai/*",
     "https://v0.dev/*",
     "https://bolt.new/*",
-    "https://gemini.google.com/*"
+    "https://gemini.google.com/*",
+    "https://cursor.com/*",
+    "https://windsurf.com/*",
+    "https://perplexity.ai/*"
   ],
   "content_scripts": [
     {
@@ -36,6 +39,9 @@
         "https://v0.dev/*",
         "https://bolt.new/*",
         "https://gemini.google.com/*",
+        "https://cursor.com/*",
+        "https://windsurf.com/*",
+        "https://perplexity.ai/*",
         "https://cognitivemode.app/*",
         "http://localhost/*"
       ],
@@ -51,7 +57,10 @@
         "https://claude.ai/*",
         "https://v0.dev/*",
         "https://bolt.new/*",
-        "https://gemini.google.com/*"
+        "https://gemini.google.com/*",
+        "https://cursor.com/*",
+        "https://windsurf.com/*",
+        "https://perplexity.ai/*"
       ]
     }
   ]

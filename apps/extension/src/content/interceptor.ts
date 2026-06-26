@@ -36,6 +36,26 @@ export const platformSelectors: Record<string, PlatformSelectors> = {
       'textarea[name="prompt"], textarea[placeholder*="Ask" i], textarea[placeholder*="follow-up" i], div[contenteditable="true"][role="textbox"]',
     button: 'button[aria-label*="send" i], button[type="submit"], button[data-testid*="send" i]',
   },
+  'cursor.com': {
+    // Cursor's AI panel may use either a sidebar textarea or contenteditable composer; adjust after testing against the live app.
+    input:
+      'textarea[placeholder*="Ask" i], textarea[placeholder*="message" i], textarea[aria-label*="chat" i], [data-testid*="chat-input" i] textarea, [data-testid*="composer" i] textarea, div[contenteditable="true"][role="textbox"], div[contenteditable="true"][data-lexical-editor="true"]',
+    button:
+      'button[aria-label*="send" i], button[aria-label*="Submit" i], button[type="submit"], button[data-testid*="send" i]',
+  },
+  'windsurf.com': {
+    // Windsurf's AI panel may use a Cascade sidebar textarea or contenteditable composer; adjust after testing against the live app.
+    input:
+      'textarea[placeholder*="Ask" i], textarea[placeholder*="Cascade" i], textarea[placeholder*="message" i], textarea[aria-label*="chat" i], [data-testid*="chat-input" i] textarea, [data-testid*="composer" i] textarea, div[contenteditable="true"][role="textbox"], div[contenteditable="true"].ProseMirror',
+    button:
+      'button[aria-label*="send" i], button[aria-label*="Submit" i], button[type="submit"], button[data-testid*="send" i]',
+  },
+  'perplexity.ai': {
+    input:
+      'textarea[placeholder*="Ask" i], textarea[aria-label*="Ask" i], textarea[placeholder*="anything" i], div[contenteditable="true"][role="textbox"], div[contenteditable="true"][aria-label*="Ask" i]',
+    button:
+      'button[aria-label*="Submit" i], button[aria-label*="Search" i], button[aria-label*="send" i], button[type="submit"], button[data-testid*="submit" i]',
+  },
 }
 
 export interface InterceptorHandle {

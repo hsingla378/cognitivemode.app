@@ -32,6 +32,9 @@ test('manifest host permissions are scoped to the supported AI tools', () => {
     'https://v0.dev/*',
     'https://bolt.new/*',
     'https://gemini.google.com/*',
+    'https://cursor.com/*',
+    'https://windsurf.com/*',
+    'https://perplexity.ai/*',
   ])
   assert.doesNotMatch(JSON.stringify(manifest), /<all_urls>|https:\/\/\*\/\*/)
 })
@@ -56,6 +59,15 @@ test('interceptor has platform selectors for current v0.dev and Bolt composers',
   assert.match(interceptorSource, /'v0\.dev'/)
   assert.match(interceptorSource, /textarea\[placeholder\*="help you today" i\]/)
   assert.match(interceptorSource, /button\[aria-label\*="send" i\]/)
+})
+
+test('interceptor has platform selectors for Cursor, Windsurf, and Perplexity composers', () => {
+  assert.match(interceptorSource, /'cursor\.com'/)
+  assert.match(interceptorSource, /'windsurf\.com'/)
+  assert.match(interceptorSource, /'perplexity\.ai'/)
+  assert.match(interceptorSource, /div\[contenteditable="true"\]\[role="textbox"\]/)
+  assert.match(interceptorSource, /textarea\[placeholder\*="Ask" i\]/)
+  assert.match(interceptorSource, /button\[aria-label\*="Submit" i\]/)
 })
 
 test('pending submit re-resolves the send button after the overlay delay', () => {
