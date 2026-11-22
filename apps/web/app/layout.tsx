@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CHROME_WEB_STORE_URL, GITHUB_URL, PRODUCT_HUNT_URL } from "./links";
 
 const TITLE = "Cognitive Mode | Practice DSA with AI hints, not answers";
 const DESCRIPTION =
@@ -61,6 +62,9 @@ const jsonLd = {
   image: "https://cognitivemode.app/icon-128.png",
   description:
     "A free, local-only Chrome extension that turns ChatGPT, Claude and Gemini into a hint ladder while you practice LeetCode, GeeksforGeeks and takeUforward problems, and schedules re-solves for problems you needed help on.",
+  downloadUrl: CHROME_WEB_STORE_URL,
+  sameAs: [CHROME_WEB_STORE_URL, GITHUB_URL, PRODUCT_HUNT_URL],
+  author: { "@type": "Person", name: "Himanshu Singla", url: "https://github.com/hsingla378" },
   offers: {
     "@type": "Offer",
     price: "0",

@@ -112,16 +112,39 @@ test("privacy policy lists practice data and has no repository links", () => {
   assert.doesNotMatch(privacySource, /extension&apos;s settings/);
 });
 
+test("privacy policy matches the store's data disclosures", () => {
+  // The store form declares web history, user activity, website content and personal
+  // communications. Google rejects listings whose policy disagrees with the form.
+  const privacySource = readFileSync(resolve(repoRoot, "apps/web/app/privacy/page.tsx"), "utf8");
+
+  assert.match(privacySource, /when you practiced and for how long/);
+  assert.match(privacySource, /reads its text in your browser/);
+  assert.match(privacySource, /never stored/);
+  assert.match(privacySource, /only by the optional Everyday mode/);
+});
+
 test("demo describes outline and solution help the way the extension logs it", () => {
   const demoSource = readFileSync(resolve(repoRoot, "apps/web/app/components/HintLadderDemo.tsx"), "utf8");
 
   assert.match(demoSource, /level >= 3/);
 });
 
-test("public site does not expose repository links", () => {
-  for (const source of [homePageSource, footerSource]) {
-    assert.doesNotMatch(source, /github\.com\/hsingla378\/cognitivemode/);
-    assert.doesNotMatch(source, /View Source/);
-    assert.doesNotMatch(source, />\s*GitHub\s*</);
+test("site links the store listing, repository and Product Hunt page", () => {
+  const linksSource = readFileSync(resolve(repoRoot, "apps/web/app/links.ts"), "utf8");
+  const faqSource = readFileSync(resolve(repoRoot, "apps/web/app/components/Faq.tsx"), "utf8");
+
+  assert.match(linksSource, /export const GITHUB_URL = "https:\/\/github\.com\/hsingla378\/cognitivemode\.app"/);
+  assert.match(linksSource, /export const PRODUCT_HUNT_URL = "https:\/\/www\.producthunt\.com\/products\/cognitive-mode"/);
+  for (const name of ["CHROME_WEB_STORE_URL", "GITHUB_URL", "PRODUCT_HUNT_URL"]) {
+    assert.match(footerSource, new RegExp(`\\b${name}\\b`));
   }
+  assert.match(footerSource, /rel="noopener noreferrer"/);
+  // A plain link, not Product Hunt's badge image, which would report every visitor to them.
+  assert.doesNotMatch(footerSource, /api\.producthunt\.com/);
+
+  assert.match(homePageSource, /\bGITHUB_URL\b/);
+  assert.match(faqSource, /Is Cognitive Mode open source\?/);
+  assert.match(faqSource, /\bGITHUB_URL\b/);
+  assert.match(layoutSource, /sameAs: \[CHROME_WEB_STORE_URL, GITHUB_URL, PRODUCT_HUNT_URL\]/);
+  assert.match(layoutSource, /downloadUrl: CHROME_WEB_STORE_URL/);
 });

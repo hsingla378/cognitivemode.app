@@ -10,12 +10,11 @@ import FeatureGrid from "./components/FeatureGrid";
 import Footer from "./components/Footer";
 import HintLadderDemo from "./components/HintLadderDemo";
 import HowItWorks from "./components/HowItWorks";
+import { CHROME_WEB_STORE_URL, GITHUB_URL } from "./links";
 
 const EXTENSION_META_SELECTOR =
   'meta[name="cognitivemode-extension"][content="installed"]';
 const EXTENSION_READY_EVENT = "cognitivemode:ready";
-const CHROME_WEB_STORE_URL =
-  "https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh";
 
 type ExtensionInstallState = "checking" | "installed" | "missing";
 
@@ -92,8 +91,16 @@ export default function Home() {
           <p className="max-w-xl text-sm leading-relaxed text-muted sm:text-base">
             Cognitive Mode turns ChatGPT, Claude and Gemini into a hint ladder
             while you solve LeetCode, GeeksforGeeks and takeUforward problems,
-            then brings back the ones you needed help on. Free. No API key.
-            Nothing leaves your browser.
+            then brings back the ones you needed help on. Free and{" "}
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground/80 underline decoration-border underline-offset-4 transition hover:text-foreground hover:decoration-foreground/60"
+            >
+              open source
+            </a>
+            . No API key. Nothing leaves your browser.
           </p>
         </div>
 

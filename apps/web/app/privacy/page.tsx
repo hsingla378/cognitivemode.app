@@ -42,8 +42,8 @@ const SECTIONS = [
         <ul className="list-inside list-disc space-y-1.5 pl-1">
           <li>
             Practice sessions: the problem&apos;s title, link, number, difficulty
-            and topics, time spent, hint levels you chose, submit clicks, and
-            the result you logged
+            and topics, when you practiced and for how long, hint levels you
+            chose, submit clicks, and the result you logged
           </li>
           <li>Re-solve dates for problems you needed help on</li>
           <li>
@@ -80,14 +80,20 @@ const SECTIONS = [
           Cognitive Mode requests only the browser permissions it needs. Access
           to LeetCode, GeeksforGeeks and takeUforward lets it notice which
           problem you are practicing. Access to ChatGPT, Claude, Gemini,
-          Perplexity, DeepSeek, v0 and Bolt lets it offer hint levels when you
-          send a message. Storage keeps your data on your device, and alarms
-          refresh the re-solve count on the toolbar icon once an hour.
+          Perplexity and DeepSeek lets it offer hint levels when you send a
+          message. Access to v0 and Bolt is used
+          only by the optional Everyday mode. On cognitivemode.app, it only
+          tells this website that the extension is installed. Storage keeps
+          your data on your device, and alarms refresh the re-solve count on
+          the toolbar icon once an hour.
         </p>
         <p>
-          When you choose a hint level, the extension adds a short, visible
-          instruction to the message you are about to send. That message goes
-          to the AI service you chose, exactly as if you had typed it yourself.
+          When you send a message on a supported AI site, the extension
+          reads its text in your browser to decide whether to step in, and in
+          practice mode adds the short, visible hint instruction you chose.
+          The message goes to the AI service you chose, exactly as if you had
+          typed it yourself. The text of your messages is never stored by
+          Cognitive Mode or sent anywhere else.
         </p>
       </>
     ),

@@ -1,5 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import { CHROME_WEB_STORE_URL, GITHUB_URL, PRODUCT_HUNT_URL } from "../links";
+
+const LINK_CLASS = "font-mono text-[11px] text-muted/60 transition hover:text-foreground";
+
+const EXTERNAL_LINKS = [
+  { label: "Chrome Web Store", href: CHROME_WEB_STORE_URL },
+  { label: "GitHub", href: GITHUB_URL },
+  { label: "Product Hunt", href: PRODUCT_HUNT_URL },
+];
 
 export default function Footer() {
   return (
@@ -23,18 +32,22 @@ export default function Footer() {
         </div>
 
         {/* Right: links */}
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
-          <Link
-            href="/#demo"
-            className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
-          >
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
+          <Link href="/#demo" className={LINK_CLASS}>
             Try Demo
           </Link>
-          <span className="h-3 w-px bg-[--color-border]" />
-          <Link
-            href="/privacy"
-            className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
-          >
+          {EXTERNAL_LINKS.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={LINK_CLASS}
+            >
+              {link.label}
+            </a>
+          ))}
+          <Link href="/privacy" className={LINK_CLASS}>
             Privacy
           </Link>
         </div>

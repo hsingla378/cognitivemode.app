@@ -1,4 +1,12 @@
-const FAQS = [
+import { GITHUB_URL } from "../links";
+
+interface FaqItem {
+  question: string;
+  answer: string;
+  link?: { href: string; label: string };
+}
+
+const FAQS: FaqItem[] = [
   {
     question: "Does Cognitive Mode work with the free version of ChatGPT?",
     answer:
@@ -33,6 +41,12 @@ const FAQS = [
     answer:
       "Pick level 4. It's logged as needing the solution, and the problem comes back in 3 days for a clean re-solve. Reading a solution once isn't the same as being able to write it in an interview.",
   },
+  {
+    question: "Is Cognitive Mode open source?",
+    answer:
+      "Yes, under the MIT license. The extension and this website are on GitHub, where you can read the code, report a bug or ask for another practice site or AI:",
+    link: { href: GITHUB_URL, label: "github.com/hsingla378/cognitivemode.app" },
+  },
 ];
 
 const faqJsonLd = {
@@ -41,7 +55,7 @@ const faqJsonLd = {
   mainEntity: FAQS.map((item) => ({
     "@type": "Question",
     name: item.question,
-    acceptedAnswer: { "@type": "Answer", text: item.answer },
+    acceptedAnswer: { "@type": "Answer", text: item.link ? `${item.answer} ${item.link.href}` : item.answer },
   })),
 };
 
@@ -67,7 +81,22 @@ export default function Faq() {
                 +
               </span>
             </summary>
-            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">{item.answer}</p>
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">
+              {item.answer}
+              {item.link && (
+                <>
+                  {" "}
+                  <a
+                    href={item.link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground/80 underline decoration-border underline-offset-4 transition hover:text-foreground"
+                  >
+                    {item.link.label}
+                  </a>
+                </>
+              )}
+            </p>
           </details>
         ))}
       </div>

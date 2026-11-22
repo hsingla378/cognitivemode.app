@@ -37,10 +37,13 @@ test("landing page shows installed CTA and toolbar pin hint", () => {
 });
 
 test("landing page links missing-state CTA to the Chrome Web Store", () => {
+  const linksSource = readFileSync(new URL("../app/links.ts", import.meta.url), "utf8");
+
   assert.match(
-    pageSource,
-    /const CHROME_WEB_STORE_URL =\s*"https:\/\/chromewebstore\.google\.com\/detail\/cognitive-mode\/hlflicjdpooonfjaciliblnmhkdmakgh"/,
+    linksSource,
+    /export const CHROME_WEB_STORE_URL =\s*"https:\/\/chromewebstore\.google\.com\/detail\/cognitive-mode\/hlflicjdpooonfjaciliblnmhkdmakgh"/,
   );
+  assert.match(pageSource, /import \{[^}]*\bCHROME_WEB_STORE_URL\b[^}]*\} from "\.\/links"/);
   assert.match(pageSource, /href=\{CHROME_WEB_STORE_URL\}/);
   assert.match(pageSource, /installState === "missing"/);
   assert.match(pageSource, /target="_blank"/);
