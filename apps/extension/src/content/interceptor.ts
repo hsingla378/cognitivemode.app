@@ -52,8 +52,8 @@ export const platformSelectors: Record<string, PlatformSelectors> = {
     hintLadder: true,
     input:
       'textarea[placeholder*="Ask" i], textarea[aria-label*="Ask" i], textarea[placeholder*="anything" i], div[contenteditable="true"][role="textbox"], div[contenteditable="true"][aria-label*="Ask" i]',
-    button:
-      'button[aria-label*="Submit" i], button[aria-label*="Search" i], button[aria-label*="send" i], button[type="submit"], button[data-testid*="submit" i]',
+    // Exact "Submit": the composer also has a "Search" mode toggle that sits earlier in the DOM.
+    button: 'button[aria-label="Submit" i], button[aria-label*="send" i], button[type="submit"], button[data-testid*="submit" i]',
   },
 }
 

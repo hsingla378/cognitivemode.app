@@ -91,6 +91,13 @@ test('selectors target the current ChatGPT composer', () => {
   assert.ok(platformSelectors['chatgpt.com'].button.includes('button[type="submit"][aria-label="Send" i]'))
 })
 
+test('Perplexity send selector targets Submit, not the Search mode toggle', () => {
+  // Live test: querySelector returned the "Search" toggle (earlier in the DOM) instead of Submit.
+  const { button } = platformSelectors['perplexity.ai']
+  assert.ok(button.includes('button[aria-label="Submit" i]'))
+  assert.doesNotMatch(button, /Search/i)
+})
+
 test('Claude send button match is case-insensitive', () => {
   assert.ok(platformSelectors['claude.ai'].button.includes('aria-label="Send message" i'))
 })
