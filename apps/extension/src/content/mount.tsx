@@ -7,9 +7,8 @@ import type { HypothesisGateData } from './Overlay'
 import { createShadowHost } from './shadowHost'
 import type { OverlayController, OverlayView, PendingSubmit } from './types'
 
-const HOST_ID = 'cognitive-mode-root'
 const HOST_CSS =
-  'position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; pointer-events: none !important;'
+  'display: block !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; pointer-events: none !important;'
 const FADE_MS = 500
 
 interface MountOptions {
@@ -21,7 +20,7 @@ interface MountOptions {
 }
 
 export function mountOverlay(options: MountOptions): OverlayController {
-  const shadowHost = createShadowHost(HOST_ID, HOST_CSS)
+  const shadowHost = createShadowHost('cognitive-mode-overlay', HOST_CSS)
 
   let pending: PendingSubmit | null = null
   let view: OverlayView | null = null

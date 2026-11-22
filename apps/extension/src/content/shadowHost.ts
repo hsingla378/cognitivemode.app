@@ -14,13 +14,18 @@ function stopKeyEvents(host: HTMLElement): void {
   }
 }
 
-/** A style-isolated root attached to <html>, re-attached if the page's framework removes it. */
-export function createShadowHost(id: string, hostCss: string): ShadowHost {
-  document.getElementById(id)?.remove()
+/**
+ * A style-isolated root attached to <html>, re-attached if the page's framework removes it.
+ *
+ * Ad blockers ship generic cosmetic filters such as `head ~ div[style*="z-index"]` that hid a
+ * plain div host in testing. So the host is a custom element with no inline style, and its
+ * positioning lives in `:host` inside the shadow root, where !important outranks the page's
+ * !important rules.
+ */
+export function createShadowHost(tagName: string, hostCss: string): ShadowHost {
+  document.querySelector(tagName)?.remove()
 
-  const host = document.createElement('div')
-  host.id = id
-  host.style.cssText = hostCss
+  const host = document.createElement(tagName)
   stopKeyEvents(host)
 
   const attach = () => {
@@ -30,7 +35,7 @@ export function createShadowHost(id: string, hostCss: string): ShadowHost {
 
   const shadow = host.attachShadow({ mode: 'open' })
   const style = document.createElement('style')
-  style.textContent = styles
+  style.textContent = `:host { ${hostCss} }\n${styles}`
   shadow.appendChild(style)
 
   const app = document.createElement('div')

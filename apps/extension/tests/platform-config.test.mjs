@@ -155,6 +155,24 @@ test('background service worker sends uninstalls to the feedback page', () => {
   )
 })
 
+test('injected UI hosts dodge generic ad-block cosmetic filters', () => {
+  const shadowHostSource = readFileSync(new URL('../src/content/shadowHost.ts', import.meta.url), 'utf8')
+  const overlaySource = readFileSync(new URL('../src/content/mount.tsx', import.meta.url), 'utf8')
+  const pillSource = readFileSync(new URL('../src/practice/mountPill.tsx', import.meta.url), 'utf8')
+
+  // Filters like `head ~ div[style*="z-index"]` (Stands) hid both hosts in live testing.
+  // Hosts are custom elements with no inline style; positioning lives in :host inside the
+  // shadow root, where !important beats the page's !important.
+  assert.doesNotMatch(shadowHostSource, /style\.cssText|createElement\('div'\)\s*\n\s*host/)
+  assert.match(shadowHostSource, /:host \{/)
+  assert.match(overlaySource, /createShadowHost\('cognitive-mode-overlay'/)
+  assert.match(pillSource, /createShadowHost\('cognitive-mode-pill'/)
+  for (const source of [overlaySource, pillSource]) {
+    assert.match(source, /display: block !important/)
+    assert.match(source, /visibility: visible !important/)
+  }
+})
+
 test('background migrates settings on update', () => {
   assert.match(backgroundSource, /migrateSettingsOnUpdate/)
 })
