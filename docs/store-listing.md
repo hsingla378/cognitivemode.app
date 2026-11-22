@@ -35,12 +35,16 @@ Cognitive Mode turns the AI you already use into a hint ladder:
 
 Your popup shows today's re-solves, this week's clean solves, your streak, and how ready you are per topic (arrays, hashing, dynamic programming…).
 
-FREE, PRIVATE, NO SETUP
+FREE, NO SETUP
 • No API key, no account, no paid tier
 • Works with free ChatGPT, Claude, Gemini, Perplexity and DeepSeek accounts
-• Practice history is stored only in your browser (chrome.storage.local)
-• Nothing is sent to Cognitive Mode servers; there are none
 • No timers or forms in practice mode: picking a level is one keypress, and you can always send a message as is
+
+WHAT IT READS AND STORES
+• On LeetCode, GeeksforGeeks and takeUforward: the open problem's title, difficulty, topics and a short excerpt, plus your Submit clicks and time spent
+• On AI chats: the message you're sending, only to add the hint instruction. Messages are never stored
+• Your practice log, hint levels, notes and settings stay in your browser (chrome.storage.local)
+• Nothing is sent to Cognitive Mode; there are no servers
 
 Also included: Everyday mode, an optional think-first gate for any AI prompt (off by default).
 
@@ -49,9 +53,25 @@ Privacy policy: https://cognitivemode.app/privacy
 
 ## Single purpose
 
-Help people practice coding problems with AI without outsourcing their thinking: it offers graded hint levels when they ask an AI for help, and tracks practice results so problems that needed help come back for a re-solve.
+Helps people practice coding problems with AI without outsourcing their thinking: it offers graded hint levels when they ask an AI chat for help, tracks practice results so problems that needed help come back for a re-solve, and optionally adds a think-first pause before AI prompts.
 
 ## Permission justifications
+
+The dashboard has one field per API permission and a single **Host permission justification** field for every host. Paste this into the host field:
+
+```
+Practice sites (leetcode.com, www.geeksforgeeks.org, takeuforward.org): reads the open problem's title, difficulty, topics and a short statement excerpt, shows a practice timer, and notices Submit clicks so the user can log the result.
+
+AI chats (chatgpt.com, claude.ai, gemini.google.com, perplexity.ai, www.perplexity.ai, chat.deepseek.com): when the user sends a message while practicing, shows hint levels and appends the chosen hint instruction to that message.
+
+AI builders (v0.app, v0.dev, bolt.new): optional Everyday mode, a think-first pause before a prompt is sent (off by default).
+
+cognitivemode.app (and localhost, for testing the site): lets the website detect that the extension is installed.
+
+All data stays in chrome.storage.local on the device. The extension makes no network requests of its own and sends nothing to the developer.
+```
+
+Per permission, for reference:
 
 | Permission | Justification |
 |---|---|
@@ -61,9 +81,22 @@ Help people practice coding problems with AI without outsourcing their thinking:
 | `https://chatgpt.com/*`, `https://claude.ai/*`, `https://gemini.google.com/*`, `https://perplexity.ai/*`, `https://www.perplexity.ai/*`, `https://chat.deepseek.com/*` | When the user sends a message during a practice session, offers hint levels and appends the chosen hint instruction to their message before it is sent. |
 | `https://v0.app/*`, `https://v0.dev/*`, `https://bolt.new/*` | Optional Everyday mode: a think-first gate before prompts on these AI builders. |
 
-**Remote code:** none. All code ships in the package.
+**Remote code:** "No, I am not using remote code". All code ships in the package.
 
-**Data usage:** keep "does not collect or use user data". Nothing is transmitted to the developer. The only network traffic is the user's own message to the AI service they chose, sent by the user.
+## Data usage
+
+Google counts data that is only read or stored on the device: "Extensions are required to disclose how they handle user data, even when data is processed or stored locally on a user's device" ([user data FAQ](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq)). Tick:
+
+| Category | Why |
+|---|---|
+| Personal communications | Reads the message being sent on AI chats to add the hint instruction (never stored). |
+| Web history | The practice log: problem pages with titles and the times they were practiced. |
+| User activity | Submit clicks and time spent on a problem. |
+| Website content | The problem's title, difficulty, topics and a statement excerpt. |
+
+Leave personally identifiable, health, financial, authentication and location information unticked. All three certifications are true: nothing is sold or transferred, nothing is used outside the single purpose, nothing is used for credit decisions.
+
+Privacy policy URL: `https://cognitivemode.app/privacy`. The live page must show the practice-mode policy before the item is submitted for review, so deploy the site first. Google treats a mismatch between this form, the policy and the extension's behavior as a violation.
 
 ## Screenshots (1280×800, ready to upload)
 
@@ -75,6 +108,17 @@ Captured from the real build on 2026-11-22, in `docs/store-screenshots/`:
 4. `4-dashboard.png`: dashboard practice log. Caption: "Every attempt, clean or not." (Sample data, same preview page.)
 
 Small promo tile (440×280): dark background with "Practice DSA with AI, without cheating yourself." and the four level chips (the same art as `apps/web/app/opengraph-image.tsx`).
+
+## Product Hunt
+
+Live on https://www.producthunt.com/products/cognitive-mode since 2026-11-22 (the June 26 launch, edited):
+
+- Tagline (product and launch): Practice DSA with AI hints, not answers
+- Product description: A free Chrome extension for practicing coding problems with AI without outsourcing the thinking. Works on LeetCode, GeeksforGeeks and takeUforward with your own ChatGPT, Claude or Gemini. No account, no API key, and your data stays in your browser.
+- Launch description: Stuck on a LeetCode problem? Ask ChatGPT, Claude, Gemini, Perplexity or DeepSeek as usual and pick how much help you get: a nudge, the approach, an outline or the full solution. Cognitive Mode logs clean vs. hinted solves and brings misses back to re-solve.
+- Gallery: the four store screenshots, padded to 1270×760.
+- Launch tags: Chrome Extensions, Developer Tools, Education. Product category: Online learning.
+- Removed gallery images from the friction-gate version: `https://ph-files.imgix.net/87a18ccb-acbc-4f83-8f2d-4e51813b55db.png`, `https://ph-files.imgix.net/163b1779-f8ae-4acb-a42b-02ff59fd863a.png`.
 
 ## Release notes (0.3.0)
 
