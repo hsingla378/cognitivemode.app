@@ -1,7 +1,7 @@
 // Dev-only preview of the popup and dashboard outside the extension (`npx vite`, then open
 // /dev/preview.html?view=popup or ?view=dashboard). Installs an in-memory chrome.* stand-in
 // seeded through the real model functions, so the data follows production rules.
-import { createEmptyState, finishAttempt, problemKey, recordHint, visit } from '../src/practice/model.ts'
+import { createEmptyState, finishAttempt, heartbeat, problemKey, recordHint, visit } from '../src/practice/model.ts'
 import type { HintRequestLevel, Outcome, PracticeState, ProblemRef } from '../src/practice/types.ts'
 
 const MINUTE = 60_000
@@ -67,19 +67,28 @@ const HISTORY: Array<[ProblemRef, SeedAttempt[]]> = [
 
 const ACTIVE = leetcode('3sum', '15', '3Sum', 'Medium', ['Arrays', 'Two Pointers', 'Sorting'])
 
+// Per-minute heartbeats, the way a visible problem tab accumulates active time.
+function practiceFor(state: PracticeState, key: string, from: number, minutes: number): PracticeState {
+  let next = state
+  for (let minute = 1; minute <= minutes; minute += 1) next = heartbeat(next, key, from + minute * MINUTE)
+  return next
+}
+
 function seedPractice(): PracticeState {
   let state = createEmptyState()
-  for (const [ref, attempts] of HISTORY) {
+  HISTORY.forEach(([ref, attempts], index) => {
     const key = problemKey(ref.platform, ref.slug)
     for (const attempt of attempts) {
       const start = now - attempt.daysAgo * DAY
-      state = visit(state, ref, start)
-      if (attempt.hint) state = recordHint(state, key, attempt.hint, start + 6 * MINUTE)
-      state = finishAttempt(state, key, attempt.outcome, start + 18 * MINUTE)
+      const minutes = 9 + ((index * 7) % 23)
+      state = practiceFor(visit(state, ref, start), key, start, minutes)
+      if (attempt.hint) state = recordHint(state, key, attempt.hint, start + minutes * MINUTE)
+      state = finishAttempt(state, key, attempt.outcome, start + (minutes + 1) * MINUTE)
     }
-  }
-  state = visit(state, ACTIVE, now - 14 * MINUTE)
-  return recordHint(state, problemKey(ACTIVE.platform, ACTIVE.slug), 1, now - 2 * MINUTE)
+  })
+  const activeKey = problemKey(ACTIVE.platform, ACTIVE.slug)
+  state = practiceFor(visit(state, ACTIVE, now - 14 * MINUTE), activeKey, now - 14 * MINUTE, 13)
+  return recordHint(state, activeKey, 1, now)
 }
 
 type ChangeListener = (changes: Record<string, { newValue: unknown }>, area: string) => void

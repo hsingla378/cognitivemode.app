@@ -65,13 +65,14 @@ Help people practice coding problems with AI without outsourcing their thinking:
 
 **Data usage:** keep "does not collect or use user data". Nothing is transmitted to the developer. The only network traffic is the user's own message to the AI service they chose, sent by the user.
 
-## Screenshots (1280×800, capture from the real build)
+## Screenshots (1280×800, ready to upload)
 
-1. **Hint ladder on ChatGPT** while a LeetCode problem is active: the four levels plus the approach note. Caption: "Pick how much help you get."
-2. **Practice timer on LeetCode** with the log panel open after Submit. Caption: "Log the result in one tap."
-3. **Popup** with re-solve queue, weekly stats and topic bars. Caption: "Problems you needed help on come back."
-4. **Dashboard practice log.** Caption: "Every attempt, clean or not."
-5. **GeeksforGeeks or takeUforward problem** with the timer. Caption: "Works on GFG and Striver's A2Z sheet too."
+Captured from the real build on 2026-11-22, in `docs/store-screenshots/`:
+
+1. `1-hint-ladder.png`: the hint ladder on ChatGPT while practicing LeetCode 3Sum. Caption: "Pick how much help you get."
+2. `2-log-result.png`: the practice timer on LeetCode with the log panel open. Caption: "Log the result in one tap."
+3. `3-popup.png`: popup with re-solve queue and weekly stats. Caption: "Problems you needed help on come back." (Rendered with sample data via `apps/extension/dev/preview.html`.)
+4. `4-dashboard.png`: dashboard practice log. Caption: "Every attempt, clean or not." (Sample data, same preview page.)
 
 Small promo tile (440×280): dark background with "Practice DSA with AI, without cheating yourself." and the four level chips (the same art as `apps/web/app/opengraph-image.tsx`).
 
