@@ -1,7 +1,7 @@
 import type { CognitiveEntry } from './types'
 
 const STORAGE_KEY = 'cognitive_entries'
-const SETTINGS_KEY = 'cognitive_settings'
+export const SETTINGS_KEY = 'cognitive_settings'
 const BYPASS_KEY = 'cognitive_daily_bypass'
 const SELF_SOLVED_STATS_KEY = 'cognitivemode_stats'
 const DAILY_BYPASS_LIMIT = 1
@@ -12,7 +12,12 @@ const SECONDS_PER_INTERCEPTION = 15
 
 export interface Settings {
   countdownDuration: number
+  /** Global Active/Paused switch for everything the extension does. */
   enabled: boolean
+  /** Hint ladder while a practice problem is open. */
+  practiceMode: boolean
+  /** The original think-first gate on every prompt. */
+  everydayMode: boolean
 }
 
 export interface Stats {
@@ -44,13 +49,15 @@ interface BypassState {
 const DEFAULT_SETTINGS: Settings = {
   countdownDuration: DEFAULT_COUNTDOWN_DURATION,
   enabled: true,
+  practiceMode: true,
+  everydayMode: false,
 }
 
 function isExtensionContextInvalidated(error: unknown): boolean {
   return error instanceof Error && error.message.includes('Extension context invalidated')
 }
 
-async function safeStorageGet(
+export async function safeStorageGet(
   key: string,
   fallback: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
@@ -62,7 +69,7 @@ async function safeStorageGet(
   }
 }
 
-async function safeStorageSet(values: Record<string, unknown>): Promise<boolean> {
+export async function safeStorageSet(values: Record<string, unknown>): Promise<boolean> {
   try {
     await chrome.storage.local.set(values)
     return true
@@ -267,36 +274,52 @@ export async function recordGateTriggered(): Promise<void> {
   })
 }
 
+function readBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback
+}
+
+export function normalizeSettings(value: unknown): Settings {
+  if (!value || typeof value !== 'object') return { ...DEFAULT_SETTINGS }
+
+  const stored = value as Partial<Record<keyof Settings, unknown>>
+  return {
+    countdownDuration:
+      typeof stored.countdownDuration === 'number'
+        ? clampCountdownDuration(stored.countdownDuration)
+        : DEFAULT_SETTINGS.countdownDuration,
+    enabled: readBoolean(stored.enabled, DEFAULT_SETTINGS.enabled),
+    practiceMode: readBoolean(stored.practiceMode, DEFAULT_SETTINGS.practiceMode),
+    everydayMode: readBoolean(stored.everydayMode, DEFAULT_SETTINGS.everydayMode),
+  }
+}
+
+/**
+ * On update from 0.2.x: people who already used the think-first gate keep it as Everyday mode,
+ * so nothing they relied on silently disappears. Returns null when there is nothing to write.
+ */
+export function migrateSettingsOnUpdate(stored: {
+  cognitive_settings?: unknown
+  cognitive_entries?: unknown
+}): Settings | null {
+  const settings = stored.cognitive_settings
+  const hadSettings = !!settings && typeof settings === 'object'
+  if (hadSettings && typeof (settings as { everydayMode?: unknown }).everydayMode === 'boolean') return null
+
+  const hadEntries = Array.isArray(stored.cognitive_entries) && stored.cognitive_entries.length > 0
+  if (!hadSettings && !hadEntries) return null
+
+  const migrated = normalizeSettings(settings)
+  return { ...migrated, everydayMode: migrated.enabled }
+}
+
 export async function getSettings(): Promise<Settings> {
   const { [SETTINGS_KEY]: stored } = await safeStorageGet(SETTINGS_KEY, {})
-  if (stored && typeof stored === 'object') {
-    const partial = stored as Partial<Settings>
-    return {
-      ...DEFAULT_SETTINGS,
-      ...partial,
-      countdownDuration:
-        typeof partial.countdownDuration === 'number'
-          ? clampCountdownDuration(partial.countdownDuration)
-          : DEFAULT_SETTINGS.countdownDuration,
-      enabled: typeof partial.enabled === 'boolean' ? partial.enabled : DEFAULT_SETTINGS.enabled,
-    }
-  }
-  return { ...DEFAULT_SETTINGS }
+  return normalizeSettings(stored)
 }
 
 export async function saveSettings(settings: Partial<Settings>): Promise<void> {
   const current = await getSettings()
-  await safeStorageSet({
-    [SETTINGS_KEY]: {
-      ...current,
-      ...settings,
-      countdownDuration:
-        settings.countdownDuration !== undefined
-          ? clampCountdownDuration(settings.countdownDuration)
-          : current.countdownDuration,
-      enabled: settings.enabled !== undefined ? settings.enabled : current.enabled,
-    },
-  })
+  await safeStorageSet({ [SETTINGS_KEY]: normalizeSettings({ ...current, ...settings }) })
 }
 
 export async function saveCognitiveLog(

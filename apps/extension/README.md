@@ -1,37 +1,44 @@
 # Cognitive Mode Extension
 
-Manifest V3 Chrome extension for the Cognitive Mode friction loop.
+Manifest V3 Chrome extension: practice coding problems with AI hints, not answers.
 
-It intercepts prompt submissions on supported AI tools, asks the user to write a short hypothesis and what they already tried, waits for the configured delay, and stores the resulting cognitive log locally with `chrome.storage.local`.
+While a problem is open on LeetCode, GeeksforGeeks or takeUforward, sending a message to a supported AI chat opens a hint ladder (nudge, approach, outline, solution). The chosen level is appended to the user's own prompt, so their AI gives exactly that much help. Attempts, outcomes and re-solve dates are stored locally with `chrome.storage.local`.
 
 Install the live extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh).
 
 ## Supported Surfaces
 
-- ChatGPT: `chatgpt.com`
-- Claude: `claude.ai`
-- Gemini: `gemini.google.com`
-- Bolt: `bolt.new`
-- v0: `v0.app` and `v0.dev`
+- Practice sites: LeetCode (`/problems/<slug>`), GeeksforGeeks (`/problems/<slug>/<n>`), takeUforward (`/practice/dsa/<slug>`)
+- Hint ladder: ChatGPT, Claude, Gemini, Perplexity, DeepSeek
+- Everyday mode (optional think-first gate): the AI chats above plus v0 (`v0.app`, `v0.dev`) and Bolt
 - Cognitive Mode web app: injects `<meta name="cognitivemode-extension" content="installed" />` for the landing page handshake
 
 ## Architecture
 
 ```text
 apps/extension/
-|- manifest.json              # MV3 permissions, popup, content script, icons
-|- popup.html                 # Extension popup entry
-|- src/App.tsx                # Popup dashboard and settings
-|- src/content/index.tsx      # Content-script entry and host routing
-|- src/content/interceptor.ts # Platform DOM submit interception
-|- src/content/Overlay.tsx    # Hypothesis Gate UI
-|- src/content/storage.ts     # Local logs, stats, and settings
-`- vite.config.ts             # Stable extension build outputs
+|- manifest.json                # MV3 permissions, popup, content script, icons
+|- src/background.ts            # Settings migration, due-count badge, hourly cleanup alarm
+|- src/content/index.tsx        # Content-script entry: routes practice sites, AI chats, landing page
+|- src/content/interceptor.ts   # AI chat composer/send selectors and submit interception
+|- src/content/composer.ts      # Appends text through the chat editor's own input handling
+|- src/content/hintSend.ts      # Send-with-hint flow (never sends without the hint block)
+|- src/content/HintLadder.tsx   # Practice-mode overlay
+|- src/content/Overlay.tsx      # Everyday-mode think-first gate
+|- src/practice/model.ts        # Pure practice rules: attempts, outcomes, re-solve schedule, stats
+|- src/practice/prompt.ts       # Hint-level prompt copy
+|- src/practice/platforms.ts    # URL parsing and page-data parsers per practice site
+|- src/practice/extract.ts      # DOM reads on practice pages
+|- src/practice/runtime.ts      # Practice-site tracker: sessions, heartbeats, Submit clicks, pill
+|- src/practice/store.ts        # chrome.storage wrapper for practice state
+|- src/App.tsx                  # Popup: now practicing, re-solve today, week stats, topics, settings
+|- src/History.tsx              # Dashboard: practice log, re-solve queue, topics, legacy notes
+`- vite.config.ts               # Stable extension build outputs
 ```
 
 ## Chrome Install
 
-Install Cognitive Mode from the [Chrome Web Store](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh), then visit the welcome page to pin it and try your first speedbump.
+Install Cognitive Mode from the [Chrome Web Store](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh), then visit the welcome page to pin it and open your first problem.
 
 ## Local Development Install
 
@@ -46,9 +53,17 @@ Then:
 
 1. Open `chrome://extensions`.
 2. Enable Developer mode.
-3. Click Load unpacked.
-4. Select `apps/extension/dist`.
-5. Refresh any open ChatGPT, Claude, v0, or local Cognitive Mode tabs.
+3. Disable the Chrome Web Store copy if you have it, so two copies don't both intercept prompts.
+4. Click Load unpacked and select `apps/extension/dist`.
+5. Refresh open practice and AI chat tabs.
+
+## Tests
+
+```bash
+npm test -w apps/extension
+```
+
+Tests import the pure TypeScript modules directly, so they need Node 22.18 or newer (built-in type stripping). Any module a test imports must use explicit `.ts` extensions for its relative runtime imports.
 
 ## Package for Release
 
@@ -64,11 +79,11 @@ Or from this workspace:
 npm run package
 ```
 
-Both commands rebuild `dist/` and create `cognitivemode-release.zip` with the unpacked extension contents ready for Chrome Web Store upload.
+Both commands rebuild `dist/` and create `cognitivemode-release.zip` with the unpacked extension contents ready for Chrome Web Store upload. Listing copy lives in [`docs/store-listing.md`](../../docs/store-listing.md).
 
 ## Development Notes
 
-- Logs and settings stay local to the browser. There is no backend, telemetry, or external network dependency for the core extension behavior.
-- The popup slider stores a custom friction delay from 5 to 60 seconds.
+- Data stays local. There is no backend, telemetry, or API key. Hints are generated by the user's own AI chat.
+- Practice state lives under the `cm_practice_v1` storage key. Legacy Everyday-mode keys (`cognitive_entries`, `cognitivemode_stats`, `cognitive_daily_bypass`) are left untouched.
+- AI chat UIs change often. Selectors live in `platformSelectors` and are pinned by `tests/platform-config.test.mjs`. If insertion fails, the extension copies the prompt instead of sending it without the hint block.
 - Build output uses stable filenames because MV3 manifests cannot point at hashed content-script names.
-- The Chrome Web Store listing is the user install path; the unpacked flow above is for local development and release verification.

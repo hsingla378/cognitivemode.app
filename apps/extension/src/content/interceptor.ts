@@ -1,20 +1,40 @@
+import { getComposerText } from './composer.ts'
 import type { PendingSubmit } from './types'
 
 export interface PlatformSelectors {
   input: string
   button: string
+  /** Chat AIs offer the practice hint ladder; app builders (v0, Bolt) only get Everyday mode. */
+  hintLadder?: boolean
+}
+
+const v0Selectors: PlatformSelectors = {
+  input:
+    'textarea[name="prompt"], textarea[placeholder*="Ask" i], textarea[placeholder*="follow-up" i], div[contenteditable="true"][role="textbox"]',
+  button: 'button[aria-label*="send" i], button[type="submit"], button[data-testid*="send" i]',
 }
 
 export const platformSelectors: Record<string, PlatformSelectors> = {
   'chatgpt.com': {
-    input: '#prompt-textarea',
-    button: 'button[data-testid="send-button"]',
+    hintLadder: true,
+    // ChatGPT replaced #prompt-textarea with a ProseMirror editor and dropped the send button's test id.
+    input: 'form div.ProseMirror[contenteditable="true"], #prompt-textarea',
+    button:
+      'button[data-testid="send-button"], form button[type="submit"][aria-label="Send" i], button[aria-label="Send prompt" i]',
   },
   'claude.ai': {
+    hintLadder: true,
     input: 'div[contenteditable="true"].ProseMirror',
-    button: 'button[aria-label="Send Message"]',
+    button: 'button[aria-label="Send message" i]',
+  },
+  'chat.deepseek.com': {
+    hintLadder: true,
+    // DeepSeek's send control is a div with role="button"; Enter is the main path.
+    input: 'textarea[placeholder*="DeepSeek" i], textarea#chat-input',
+    button: 'div[role="button"].ds-button--primary, button[aria-label*="send" i]',
   },
   'gemini.google.com': {
+    hintLadder: true,
     input:
       'rich-textarea .ql-editor[contenteditable="true"], rich-textarea div[contenteditable="true"], div[contenteditable="true"][role="textbox"], div[contenteditable="true"][aria-label*="prompt" i], div[contenteditable="true"][aria-label*="Enter" i]',
     button:
@@ -26,31 +46,10 @@ export const platformSelectors: Record<string, PlatformSelectors> = {
     button:
       'button[aria-label*="send" i], button[type="submit"], button.bg-accent-500, button[class*="bg-accent"]',
   },
-  'v0.app': {
-    input:
-      'textarea[name="prompt"], textarea[placeholder*="Ask" i], textarea[placeholder*="follow-up" i], div[contenteditable="true"][role="textbox"]',
-    button: 'button[aria-label*="send" i], button[type="submit"], button[data-testid*="send" i]',
-  },
-  'v0.dev': {
-    input:
-      'textarea[name="prompt"], textarea[placeholder*="Ask" i], textarea[placeholder*="follow-up" i], div[contenteditable="true"][role="textbox"]',
-    button: 'button[aria-label*="send" i], button[type="submit"], button[data-testid*="send" i]',
-  },
-  'cursor.com': {
-    // Cursor's AI panel may use either a sidebar textarea or contenteditable composer; adjust after testing against the live app.
-    input:
-      'textarea[placeholder*="Ask" i], textarea[placeholder*="message" i], textarea[aria-label*="chat" i], [data-testid*="chat-input" i] textarea, [data-testid*="composer" i] textarea, div[contenteditable="true"][role="textbox"], div[contenteditable="true"][data-lexical-editor="true"]',
-    button:
-      'button[aria-label*="send" i], button[aria-label*="Submit" i], button[type="submit"], button[data-testid*="send" i]',
-  },
-  'windsurf.com': {
-    // Windsurf's AI panel may use a Cascade sidebar textarea or contenteditable composer; adjust after testing against the live app.
-    input:
-      'textarea[placeholder*="Ask" i], textarea[placeholder*="Cascade" i], textarea[placeholder*="message" i], textarea[aria-label*="chat" i], [data-testid*="chat-input" i] textarea, [data-testid*="composer" i] textarea, div[contenteditable="true"][role="textbox"], div[contenteditable="true"].ProseMirror',
-    button:
-      'button[aria-label*="send" i], button[aria-label*="Submit" i], button[type="submit"], button[data-testid*="send" i]',
-  },
+  'v0.app': v0Selectors,
+  'v0.dev': v0Selectors,
   'perplexity.ai': {
+    hintLadder: true,
     input:
       'textarea[placeholder*="Ask" i], textarea[aria-label*="Ask" i], textarea[placeholder*="anything" i], div[contenteditable="true"][role="textbox"], div[contenteditable="true"][aria-label*="Ask" i]',
     button:
@@ -67,7 +66,7 @@ export interface InterceptorHandle {
   destroy: () => void
 }
 
-function resolvePlatform(hostname: string): PlatformSelectors | null {
+export function resolvePlatform(hostname: string): PlatformSelectors | null {
   for (const [host, config] of Object.entries(platformSelectors)) {
     if (hostname === host || hostname.endsWith(`.${host}`)) {
       return config
@@ -80,13 +79,6 @@ function isVisible(element: HTMLElement): boolean {
   if (!element.isConnected) return false
   const rect = element.getBoundingClientRect()
   return rect.width > 0 && rect.height > 0
-}
-
-function getComposerText(input: HTMLElement): string {
-  if (input instanceof HTMLTextAreaElement) {
-    return input.value.trim()
-  }
-  return (input.innerText ?? input.textContent ?? '').trim()
 }
 
 function hasPromptContent(input: HTMLElement): boolean {
@@ -163,6 +155,7 @@ function createPendingSubmit(
         }),
       )
     },
+    getText: () => getComposerText(input),
   }
 }
 
@@ -174,7 +167,15 @@ const noopHandle: InterceptorHandle = {
   destroy: () => {},
 }
 
-export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): InterceptorHandle {
+export interface InterceptorOptions {
+  /** Called synchronously on every Enter/click, because preventDefault cannot wait for storage. */
+  shouldIntercept: (input: HTMLElement) => boolean
+}
+
+export function initInterceptor(
+  onIntercept: (pending: PendingSubmit) => void,
+  options: InterceptorOptions,
+): InterceptorHandle {
   const platform = resolvePlatform(window.location.hostname)
   if (!platform) return noopHandle
 
@@ -210,6 +211,7 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
 
     const input = getComposerFromTarget(event.target, inputSelector)
     if (!input || !hasPromptContent(input)) return
+    if (!options.shouldIntercept(input)) return
 
     event.preventDefault()
     event.stopImmediatePropagation()
@@ -229,6 +231,7 @@ export function initInterceptor(onIntercept: (pending: PendingSubmit) => void): 
       getComposerFromTarget(document.activeElement, inputSelector) ??
       findPromptInput(inputSelector)
     if (!input || !hasPromptContent(input)) return
+    if (!options.shouldIntercept(input)) return
 
     event.preventDefault()
     event.stopImmediatePropagation()

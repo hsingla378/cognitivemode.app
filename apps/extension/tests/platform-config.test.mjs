@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
+import { platformSelectors, resolvePlatform } from '../src/content/interceptor.ts'
 
 const manifest = JSON.parse(
   readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'),
@@ -25,50 +26,87 @@ function manifestUrlsFor(key) {
   return manifest[key] ?? []
 }
 
-test('manifest host permissions are scoped to the supported AI tools', () => {
+test('manifest host permissions are the AI and practice hosts', () => {
   assert.deepEqual(manifestUrlsFor('host_permissions'), [
     'https://chatgpt.com/*',
     'https://claude.ai/*',
-    'https://v0.dev/*',
-    'https://bolt.new/*',
     'https://gemini.google.com/*',
-    'https://cursor.com/*',
-    'https://windsurf.com/*',
     'https://perplexity.ai/*',
     'https://www.perplexity.ai/*',
+    'https://chat.deepseek.com/*',
+    'https://v0.app/*',
+    'https://v0.dev/*',
+    'https://bolt.new/*',
+    'https://leetcode.com/*',
+    'https://www.geeksforgeeks.org/*',
+    'https://takeuforward.org/*',
   ])
   assert.doesNotMatch(JSON.stringify(manifest), /<all_urls>|https:\/\/\*\/\*/)
 })
 
-test('manifest content scripts include AI tools and web handshake surfaces', () => {
-  const supportedToolPatterns = manifestUrlsFor('host_permissions')
-
+test('content scripts also cover the landing page handshake', () => {
   assert.deepEqual(manifest.content_scripts[0].matches, [
-    ...supportedToolPatterns,
+    ...manifestUrlsFor('host_permissions'),
     'https://cognitivemode.app/*',
     'http://localhost/*',
   ])
 })
 
-test('manifest web-accessible resources stay scoped to supported AI tools', () => {
-  const supportedToolPatterns = manifestUrlsFor('host_permissions')
-
-  assert.deepEqual(manifest.web_accessible_resources[0].matches, supportedToolPatterns)
+test('manifest exposes no web-accessible resources', () => {
+  // Nothing in the content script loads extension files, and exposing them would let
+  // practice sites detect the extension.
+  assert.equal(manifest.web_accessible_resources, undefined)
 })
 
-test('interceptor has platform selectors for current v0.dev and Bolt composers', () => {
+test('the hint ladder only runs on chat AIs', () => {
+  for (const host of ['chatgpt.com', 'claude.ai', 'gemini.google.com', 'perplexity.ai', 'chat.deepseek.com']) {
+    assert.equal(platformSelectors[host].hintLadder, true, host)
+  }
+  for (const host of ['v0.app', 'v0.dev', 'bolt.new']) {
+    assert.notEqual(platformSelectors[host].hintLadder, true, host)
+  }
+})
+
+test('background re-runs the idempotent settings migration on browser start', () => {
+  assert.match(backgroundSource, /function onBrowserStart\(\)[\s\S]*?migrateSettings\(\)/)
+  assert.match(backgroundSource, /chrome\.runtime\.onStartup\.addListener\(onBrowserStart\)/)
+})
+
+test('manifest is version 0.3.0 with storage and alarms only', () => {
+  assert.equal(manifest.name, 'Cognitive Mode: AI hints for DSA practice')
+  assert.ok(manifest.name.length <= 75)
+  assert.equal(manifest.action.default_title, 'Cognitive Mode')
+  assert.equal(manifest.version, '0.3.0')
+  assert.equal(extensionPackage.version, '0.3.0')
+  assert.deepEqual(manifest.permissions, ['storage', 'alarms'])
+  assert.equal(
+    manifest.description,
+    'Practice coding problems with AI hints, not answers. Tracks clean solves and brings problems back for a re-solve.',
+  )
+  assert.ok(manifest.description.length <= 132)
+})
+
+test('selectors target the current ChatGPT composer', () => {
+  assert.ok(platformSelectors['chatgpt.com'].input.includes('div.ProseMirror[contenteditable="true"]'))
+  assert.ok(platformSelectors['chatgpt.com'].button.includes('button[type="submit"][aria-label="Send" i]'))
+})
+
+test('Claude send button match is case-insensitive', () => {
+  assert.ok(platformSelectors['claude.ai'].button.includes('aria-label="Send message" i'))
+})
+
+test('DeepSeek is supported and desktop-IDE sites are not', () => {
+  assert.notEqual(resolvePlatform('chat.deepseek.com'), null)
+  assert.notEqual(resolvePlatform('v0.app'), null)
+  assert.notEqual(resolvePlatform('www.perplexity.ai'), null)
+  assert.equal(resolvePlatform('cursor.com'), null)
+  assert.equal(resolvePlatform('windsurf.com'), null)
+})
+
+test('interceptor keeps selectors for v0 and Bolt composers', () => {
   assert.match(interceptorSource, /'v0\.dev'/)
   assert.match(interceptorSource, /textarea\[placeholder\*="help you today" i\]/)
   assert.match(interceptorSource, /button\[aria-label\*="send" i\]/)
-})
-
-test('interceptor has platform selectors for Cursor, Windsurf, and Perplexity composers', () => {
-  assert.match(interceptorSource, /'cursor\.com'/)
-  assert.match(interceptorSource, /'windsurf\.com'/)
-  assert.match(interceptorSource, /'perplexity\.ai'/)
-  assert.match(interceptorSource, /div\[contenteditable="true"\]\[role="textbox"\]/)
-  assert.match(interceptorSource, /textarea\[placeholder\*="Ask" i\]/)
-  assert.match(interceptorSource, /button\[aria-label\*="Submit" i\]/)
 })
 
 test('pending submit re-resolves the send button after the overlay delay', () => {
@@ -115,6 +153,15 @@ test('background service worker sends uninstalls to the feedback page', () => {
     backgroundSource,
     /chrome\.runtime\.setUninstallURL\('https:\/\/cognitivemode\.app\/goodbye'\)/,
   )
+})
+
+test('background migrates settings on update', () => {
+  assert.match(backgroundSource, /migrateSettingsOnUpdate/)
+})
+
+test('background keeps a due-count badge', () => {
+  assert.match(backgroundSource, /setBadgeText/)
+  assert.match(backgroundSource, /periodInMinutes:\s*60/)
 })
 
 test('storage helpers tolerate stale content scripts after extension reloads', () => {
@@ -165,25 +212,34 @@ test('overlay collapsed textareas fit multi-line placeholders', () => {
   assert.doesNotMatch(overlaySource, /expanded \? 'h-28 overflow-y-auto' : 'h-11 overflow-hidden'/)
 })
 
-test('popup dashboard reads and displays self-solved stats', () => {
+test('popup shows practice data and settings', () => {
   const popupSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8')
 
-  assert.match(popupSource, /getSelfSolvedStats/)
-  assert.match(popupSource, /Self-solved today/)
-  assert.match(popupSource, /Current streak/)
-  assert.match(popupSource, /All time/)
+  for (const name of ['activePractice', 'dueProblems', 'weeklyStats', 'topicReadiness']) {
+    assert.match(popupSource, new RegExp(name), name)
+  }
+  assert.match(popupSource, /Re-solve today/)
+  assert.match(popupSource, /Practice mode/)
+  assert.match(popupSource, /Everyday mode/)
 })
 
-test('popup layout leaves room for history after self-solved stats', () => {
+test('popup is 360 by 560', () => {
   const popupSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8')
   const popupCss = readFileSync(new URL('../src/App.css', import.meta.url), 'utf8')
 
-  assert.match(popupSource, /h-\[520px\] w-\[360px\]/)
+  assert.match(popupSource, /h-\[560px\] w-\[360px\]/)
   assert.match(popupCss, /width:\s*360px/)
-  assert.match(popupCss, /height:\s*520px/)
-  assert.match(popupSource, /grid grid-cols-3 gap-2 text-xs/)
-  assert.match(popupSource, /flex min-h-\[120px\] flex-1 flex-col/)
-  assert.match(popupSource, /View Full History/)
+  assert.match(popupCss, /height:\s*560px/)
+})
+
+test('dashboard has practice log, re-solve, topics and notes tabs', () => {
+  const dashboardSource = readFileSync(new URL('../src/History.tsx', import.meta.url), 'utf8')
+  const dashboardHtml = readFileSync(new URL('../history.html', import.meta.url), 'utf8')
+
+  for (const label of ['Practice log', 'Re-solve', 'Topics', 'Notes']) {
+    assert.ok(dashboardSource.includes(`'${label}'`), label)
+  }
+  assert.match(dashboardHtml, /<title>Dashboard · Cognitive Mode<\/title>/)
 })
 
 test('package script rebuilds a fresh Chrome Web Store zip from dist contents', () => {

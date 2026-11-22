@@ -1,104 +1,103 @@
 import { createRoot } from 'react-dom/client'
+import type { HintRequestLevel } from '../practice/types.ts'
+import HintLadder from './HintLadder'
+import type { HintSendResult } from './hintSend.ts'
 import FrictionOverlay from './Overlay'
 import type { HypothesisGateData } from './Overlay'
-import styles from './content.css?inline'
-import type { OverlayController, PendingSubmit } from './types'
+import { createShadowHost } from './shadowHost'
+import type { OverlayController, OverlayView, PendingSubmit } from './types'
 
 const HOST_ID = 'cognitive-mode-root'
+const HOST_CSS =
+  'position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; pointer-events: none !important;'
 const FADE_MS = 500
 
 interface MountOptions {
   onSubmit: (data: HypothesisGateData) => void | Promise<void>
   onSelfSolved: (data: HypothesisGateData) => void | Promise<void>
   onDismiss: () => void
+  onSendWithHint: (level: HintRequestLevel, approach: string) => Promise<HintSendResult>
+  onSendAsIs: () => void
 }
 
 export function mountOverlay(options: MountOptions): OverlayController {
-  const existing = document.getElementById(HOST_ID)
-  existing?.remove()
-
-  const host = document.createElement('div')
-  host.id = HOST_ID
-  host.style.cssText =
-    'position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; pointer-events: none !important;'
-
-  const attachHost = () => {
-    const container = document.documentElement
-    if (host.parentElement !== container) {
-      container.appendChild(host)
-    }
-  }
-
-  attachHost()
-
-  const shadow = host.attachShadow({ mode: 'open' })
-
-  const style = document.createElement('style')
-  style.textContent = styles
-  shadow.appendChild(style)
-
-  const app = document.createElement('div')
-  app.id = 'cognitive-mode-app'
-  shadow.appendChild(app)
+  const shadowHost = createShadowHost(HOST_ID, HOST_CSS)
 
   let pending: PendingSubmit | null = null
+  let view: OverlayView | null = null
   let overlayVersion = 0
 
-  const root = createRoot(app)
-  const render = () => {
-    attachHost()
+  const root = createRoot(shadowHost.app)
+
+  const close = () => {
+    pending = null
+    view = null
+    overlayVersion += 1
+    render()
+  }
+
+  const closeAfterFade = () => {
+    window.setTimeout(close, FADE_MS)
+  }
+
+  function render() {
+    if (view?.mode === 'practice') {
+      root.render(
+        <HintLadder
+          key={overlayVersion}
+          pending={pending}
+          problem={view.problem}
+          onSendWithHint={async (level, approach) => {
+            const result = await options.onSendWithHint(level, approach)
+            if (result === 'sent') close()
+            return result
+          }}
+          onSendAsIs={() => {
+            close()
+            options.onSendAsIs()
+          }}
+          onDismiss={() => {
+            close()
+            options.onDismiss()
+          }}
+        />,
+      )
+      return
+    }
+
     root.render(
       <FrictionOverlay
         key={overlayVersion}
         pending={pending}
         onSubmit={async (data) => {
           await options.onSubmit(data)
-          window.setTimeout(() => {
-            pending = null
-            overlayVersion += 1
-            render()
-          }, FADE_MS)
+          closeAfterFade()
         }}
         onSelfSolved={async (data) => {
           await options.onSelfSolved(data)
-          window.setTimeout(() => {
-            pending = null
-            overlayVersion += 1
-            render()
-          }, FADE_MS)
+          closeAfterFade()
         }}
         onDismiss={() => {
-          pending = null
-          overlayVersion += 1
+          close()
           options.onDismiss()
-          render()
         }}
       />,
     )
   }
 
-  const observer = new MutationObserver(attachHost)
-  observer.observe(document.documentElement, { childList: true })
-
   render()
 
   return {
-    show(nextPending) {
-      attachHost()
+    show(nextPending, nextView) {
       pending = nextPending
+      view = nextView
       overlayVersion += 1
       render()
     },
-    hide() {
-      attachHost()
-      pending = null
-      overlayVersion += 1
-      render()
-    },
+    hide: close,
     destroy() {
-      observer.disconnect()
       root.unmount()
-      host.remove()
+      shadowHost.destroy()
     },
   }
 }

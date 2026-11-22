@@ -1,255 +1,268 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { getSettings, normalizeSettings, saveSettings, type Settings } from './content/storage'
 import {
-  countSelfSolvedOnDate,
-  getCognitiveLogs,
-  getSelfSolvedStats,
-  getSettings,
-  getStats,
-  saveSettings,
-  type SelfSolvedStats,
-  type Stats,
-} from './content/storage'
-import type { CognitiveEntry } from './content/types'
+  activePractice,
+  activeTimeMs,
+  createEmptyState,
+  currentAttempt,
+  deriveOutcome,
+  dueProblems,
+  finishAttempt,
+  topicReadiness,
+  weeklyStats,
+} from './practice/model.ts'
+import { LOG_OPTIONS, formatClock, hintSummary } from './practice/pillText.ts'
+import { PLATFORM_LABELS } from './practice/platforms.ts'
+import { onPracticeStateChange, readPracticeState, updatePracticeState } from './practice/store.ts'
+import type { Outcome, PracticeState, WeeklyStats } from './practice/types.ts'
+import Toggle from './ui/Toggle'
+import TopicBars from './ui/TopicBars'
 import './App.css'
 
-const HYPOTHESIS_SNIPPET_LENGTH = 72
 const FRICTION_DELAY_MIN = 5
 const FRICTION_DELAY_MAX = 60
-const FRICTION_DELAY_DEFAULT = 15
+const TOP_TOPICS = 4
+const DUE_PREVIEW = 5
+const PRACTICE_SITES = [
+  { label: 'LeetCode', url: 'https://leetcode.com/problemset/' },
+  { label: 'GeeksforGeeks', url: 'https://www.geeksforgeeks.org/explore' },
+  { label: 'takeUforward', url: 'https://takeuforward.org/dsa' },
+]
 
-function truncateHypothesis(text: string): string {
-  const trimmed = text.trim()
-  if (trimmed.length <= HYPOTHESIS_SNIPPET_LENGTH) return trimmed
-  return `${trimmed.slice(0, HYPOTHESIS_SNIPPET_LENGTH).trimEnd()}…`
+function openTab(url: string) {
+  void chrome.tabs.create({ url })
 }
 
-function formatTimestamp(timestamp: number): string {
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(timestamp))
-}
-
-function buildShareTweetUrl(stats: Stats): string {
-  const text = `I just saved ${stats.timeSavedThinking} of mindless AI prompting and preserved my engineering intuition using cognitivemode.app. Current streak: ${stats.activeStreak} mindful prompts.`
+function shareWeekUrl(stats: WeeklyStats): string {
+  const text = `I solved ${stats.clean}/${stats.solved} practice problems clean this week, ${stats.streakDays}-day streak. Practicing DSA with AI hints, not answers: cognitivemode.app`
   return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
 }
 
+function SectionLabel({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <h2 id={id} className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+      {children}
+    </h2>
+  )
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-2">
+      <p className="text-xl font-semibold tabular-nums text-zinc-50">{value}</p>
+      <p className="text-[11px] text-zinc-500">{label}</p>
+    </div>
+  )
+}
+
 function App() {
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [selfSolvedStats, setSelfSolvedStats] = useState<SelfSolvedStats | null>(null)
-  const [recentLogs, setRecentLogs] = useState<CognitiveEntry[]>([])
-  const [frictionDelay, setFrictionDelay] = useState(FRICTION_DELAY_DEFAULT)
-  const [enabled, setEnabled] = useState(true)
+  const [settings, setSettings] = useState<Settings>(() => normalizeSettings(undefined))
+  const [practice, setPractice] = useState<PracticeState>(() => createEmptyState())
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     let cancelled = false
 
-    async function loadDashboard() {
-      const [nextStats, nextSelfSolvedStats, logs, settings] = await Promise.all([
-        getStats(),
-        getSelfSolvedStats(),
-        getCognitiveLogs(),
-        getSettings(),
-      ])
+    void Promise.all([getSettings(), readPracticeState()]).then(([loadedSettings, loadedPractice]) => {
       if (cancelled) return
-
-      setStats(nextStats)
-      setSelfSolvedStats(nextSelfSolvedStats)
-      setRecentLogs(logs.slice(-3).reverse())
-      setFrictionDelay(
-        Math.min(FRICTION_DELAY_MAX, Math.max(FRICTION_DELAY_MIN, settings.countdownDuration)),
-      )
-      setEnabled(settings.enabled)
-    }
-
-    void loadDashboard()
+      setSettings(loadedSettings)
+      setPractice(loadedPractice)
+    })
+    const unsubscribe = onPracticeStateChange(setPractice)
+    const tick = window.setInterval(() => setNow(Date.now()), 1000)
 
     return () => {
       cancelled = true
+      unsubscribe()
+      window.clearInterval(tick)
     }
   }, [])
 
-  async function handleFrictionDelayChange(value: number) {
-    const clamped = Math.min(FRICTION_DELAY_MAX, Math.max(FRICTION_DELAY_MIN, value))
-    setFrictionDelay(clamped)
-    await saveSettings({ countdownDuration: clamped })
+  const active = activePractice(practice, now)
+  const attempt = active ? currentAttempt(active) : undefined
+  const due = dueProblems(practice, now)
+  const stats = weeklyStats(practice, now)
+  const topics = topicReadiness(practice).slice(0, TOP_TOPICS)
+  const hasHistory = Object.keys(practice.problems).length > 0
+
+  async function updateSettings(patch: Partial<Settings>) {
+    setSettings((current) => normalizeSettings({ ...current, ...patch }))
+    await saveSettings(patch)
   }
 
-  async function handleEnabledToggle() {
-    const next = !enabled
-    setEnabled(next)
-    await saveSettings({ enabled: next })
+  async function logOutcome(outcome: Outcome) {
+    if (!active) return
+    const { key } = active
+    setPractice(await updatePracticeState((state, time) => finishAttempt(state, key, outcome, time)))
   }
-
-  function handleShareProgress() {
-    if (!stats) return
-    chrome.tabs.create({ url: buildShareTweetUrl(stats) })
-  }
-
-  const selfSolvedToday = selfSolvedStats ? countSelfSolvedOnDate(selfSolvedStats) : null
-  const currentSelfSolvedStreak = selfSolvedStats?.currentStreak ?? null
-  const streakSuffix =
-    currentSelfSolvedStreak !== null && currentSelfSolvedStreak >= 2 ? ' 🔥' : ''
 
   return (
-    <div className="flex h-[520px] w-[360px] flex-col bg-zinc-950 text-zinc-100">
+    <div className="flex h-[560px] w-[360px] flex-col bg-zinc-950 text-zinc-100">
       <header className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
         <h1 className="text-sm font-semibold tracking-tight">Cognitive Mode</h1>
         <button
           type="button"
-          onClick={() => void handleEnabledToggle()}
-          aria-pressed={enabled}
-          title={enabled ? 'Pause interception' : 'Activate interception'}
+          onClick={() => void updateSettings({ enabled: !settings.enabled })}
+          aria-pressed={settings.enabled}
+          title={settings.enabled ? 'Pause Cognitive Mode' : 'Turn Cognitive Mode back on'}
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-900 hover:text-zinc-200"
         >
           <span
             className={`h-2 w-2 rounded-full ${
-              enabled
-                ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
-                : 'bg-zinc-600'
+              settings.enabled ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-zinc-600'
             }`}
           />
-          {enabled ? 'Active' : 'Paused'}
+          {settings.enabled ? 'Active' : 'Paused'}
         </button>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col gap-3 px-4 py-4">
-        <section className="grid grid-cols-3 gap-2">
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-              Intercepted
-            </p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-50">
-              {stats?.totalInterceptions ?? '—'}
-            </p>
-          </div>
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5">
-            <div className="flex items-start justify-between gap-1">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-                Think Time
-              </p>
-              <button
-                type="button"
-                onClick={handleShareProgress}
-                disabled={!stats}
-                title="Share progress on X"
-                aria-label="Share progress on X"
-                className="shrink-0 rounded p-0.5 text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  className="h-3 w-3 fill-current"
-                >
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </button>
-            </div>
-            <p className="mt-1 text-sm font-semibold leading-snug text-zinc-50">
-              {stats?.timeSavedThinking ?? '—'}
-            </p>
-          </div>
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-              Streak
-            </p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-50">
-              {stats?.activeStreak ?? '—'}
-            </p>
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
-          <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-            Self-solved
-          </h2>
-          <div className="grid grid-cols-3 gap-2 text-xs text-zinc-400">
-            <p className="min-w-0">
-              <span>Self-solved today:</span>
-              <span className="mt-1 block font-mono tabular-nums text-zinc-100">
-                {selfSolvedToday ?? '—'}
-              </span>
-            </p>
-            <p className="min-w-0">
-              <span>Current streak:</span>
-              <span className="mt-1 block font-mono tabular-nums text-zinc-100">
-                {currentSelfSolvedStreak ?? '—'}
-                {currentSelfSolvedStreak !== null ? ` days${streakSuffix}` : ''}
-              </span>
-            </p>
-            <p className="min-w-0">
-              <span>All time:</span>
-              <span className="mt-1 block font-mono tabular-nums text-zinc-100">
-                {selfSolvedStats?.totalSelfSolved ?? '—'}
-                <span className="block text-[10px] text-zinc-500">solved without AI</span>
-              </span>
-            </p>
-          </div>
-        </section>
-
-        <section className="flex min-h-[120px] flex-1 flex-col">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <h2 className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-              Recent Activity
-            </h2>
+      <main className="popup-scroll flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-4">
+        {active && attempt && (
+          <section aria-labelledby="now-practicing" className="rounded-xl border border-emerald-400/30 bg-emerald-400/[0.06] p-3">
+            <SectionLabel id="now-practicing">Now practicing</SectionLabel>
             <button
               type="button"
-              onClick={() =>
-                chrome.tabs.create({ url: chrome.runtime.getURL('history.html') })
-              }
-              className="text-[11px] font-medium text-zinc-400 transition hover:text-zinc-200"
+              onClick={() => openTab(active.url)}
+              className="block max-w-full truncate text-left text-sm font-medium text-zinc-100 hover:underline"
             >
-              View Full History →
+              {active.title}
             </button>
-          </div>
-          <ul className="activity-feed min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-            {recentLogs.length === 0 ? (
-              <li className="rounded-md border border-dashed border-zinc-800 px-3 py-4 text-center text-xs text-zinc-500">
-                No hypotheses logged yet.
-              </li>
-            ) : (
-              recentLogs.map((log) => (
-                <li
-                  key={log.timestamp}
-                  className="rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-2"
+            <p className="mt-0.5 text-xs text-zinc-500">
+              {PLATFORM_LABELS[active.platform]}
+              {active.difficulty ? ` · ${active.difficulty}` : ''} ·{' '}
+              <span className="font-mono tabular-nums text-zinc-300">{formatClock(activeTimeMs(attempt, now, false))}</span>{' '}
+              · {hintSummary(attempt.maxHintLevel)}
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-1.5">
+              {LOG_OPTIONS.map((option) => (
+                <button
+                  key={option.outcome}
+                  type="button"
+                  onClick={() => void logOutcome(option.outcome)}
+                  className={`rounded-lg border px-2 py-1.5 text-left text-[11px] transition ${
+                    option.outcome === deriveOutcome(attempt.maxHintLevel)
+                      ? 'border-emerald-400/60 bg-emerald-400/10 text-zinc-100'
+                      : 'border-zinc-800 text-zinc-300 hover:border-zinc-600'
+                  }`}
                 >
-                  <time className="text-[11px] text-zinc-500">
-                    {formatTimestamp(log.timestamp)}
-                  </time>
-                  <p className="mt-1 text-xs leading-relaxed text-zinc-300">
-                    {truncateHypothesis(log.hypothesis)}
-                  </p>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section aria-labelledby="resolve-today">
+          <div className="flex items-center justify-between">
+            <SectionLabel id="resolve-today">Re-solve today</SectionLabel>
+            {due.length > 0 && <span className="mb-2 font-mono text-xs text-emerald-300">{due.length}</span>}
+          </div>
+          {due.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-zinc-800 px-3 py-3 text-xs leading-relaxed text-zinc-500">
+              {hasHistory
+                ? 'All caught up. Problems you needed help on come back here for a clean re-solve.'
+                : 'Open a problem on a practice site to start. When you ask ChatGPT, Claude or Gemini, you pick how much help you get.'}
+            </p>
+          ) : (
+            <ul className="space-y-1.5">
+              {due.slice(0, DUE_PREVIEW).map((record) => (
+                <li key={record.key}>
+                  <button
+                    type="button"
+                    onClick={() => openTab(record.url)}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-left text-xs transition hover:border-zinc-600"
+                  >
+                    <span className="truncate text-zinc-200">{record.title}</span>
+                    <span className="shrink-0 text-zinc-500">{PLATFORM_LABELS[record.platform]} →</span>
+                  </button>
                 </li>
-              ))
-            )}
-          </ul>
+              ))}
+            </ul>
+          )}
+          {!hasHistory && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {PRACTICE_SITES.map((site) => (
+                <button
+                  key={site.label}
+                  type="button"
+                  onClick={() => openTab(site.url)}
+                  className="rounded-full border border-zinc-800 px-2.5 py-1 text-[11px] text-zinc-300 transition hover:border-zinc-600"
+                >
+                  {site.label}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
+
+        <section aria-labelledby="this-week">
+          <SectionLabel id="this-week">This week</SectionLabel>
+          <div className="grid grid-cols-3 gap-2">
+            <Stat value={stats.clean} label="clean solves" />
+            <Stat value={stats.solved} label="solved" />
+            <Stat value={stats.streakDays} label="day streak" />
+          </div>
+        </section>
+
+        {topics.length > 0 && (
+          <section aria-labelledby="topics">
+            <SectionLabel id="topics">Topics</SectionLabel>
+            <TopicBars topics={topics} />
+          </section>
+        )}
+
+        <details className="rounded-xl border border-zinc-800 px-3 py-2.5">
+          <summary className="cursor-pointer text-xs text-zinc-400">Settings</summary>
+          <div className="mt-3 space-y-3">
+            <Toggle
+              label="Practice mode"
+              description="Hint ladder while a practice problem is open"
+              checked={settings.practiceMode}
+              onChange={(checked) => void updateSettings({ practiceMode: checked })}
+            />
+            <Toggle
+              label="Everyday mode"
+              description="Think-first gate on every AI prompt"
+              checked={settings.everydayMode}
+              onChange={(checked) => void updateSettings({ everydayMode: checked })}
+            />
+            {settings.everydayMode && (
+              <label className="block">
+                <span className="flex items-center justify-between text-[11px] text-zinc-400">
+                  Everyday delay
+                  <span className="font-mono tabular-nums text-zinc-200">{settings.countdownDuration}s</span>
+                </span>
+                <input
+                  type="range"
+                  min={FRICTION_DELAY_MIN}
+                  max={FRICTION_DELAY_MAX}
+                  step={1}
+                  value={settings.countdownDuration}
+                  onChange={(event) => void updateSettings({ countdownDuration: Number(event.target.value) })}
+                  className="mt-1.5 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-800 accent-emerald-500"
+                />
+              </label>
+            )}
+          </div>
+        </details>
       </main>
 
-      <footer className="border-t border-zinc-800 px-4 py-3">
-        <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-          Settings
-        </h2>
-        <label htmlFor="friction-delay" className="flex items-center justify-between gap-3">
-          <span className="text-xs text-zinc-400">Friction Delay</span>
-          <span className="font-mono text-xs tabular-nums text-zinc-200">{frictionDelay}s</span>
-        </label>
-        <input
-          id="friction-delay"
-          type="range"
-          min={FRICTION_DELAY_MIN}
-          max={FRICTION_DELAY_MAX}
-          step={1}
-          value={frictionDelay}
-          onChange={(e) => void handleFrictionDelayChange(Number(e.target.value))}
-          className="mt-2 h-1.5 w-full cursor-pointer appearance-none rounded-full bg-zinc-800 accent-emerald-500"
-        />
-        <p className="mt-1.5 text-[10px] text-zinc-600">
-          {FRICTION_DELAY_MIN}–{FRICTION_DELAY_MAX} seconds before unlock
-        </p>
+      <footer className="flex items-center justify-between border-t border-zinc-800 px-4 py-3 text-xs">
+        <button
+          type="button"
+          onClick={() => openTab(shareWeekUrl(stats))}
+          disabled={stats.solved === 0}
+          className="text-zinc-400 transition hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Share my week
+        </button>
+        <button
+          type="button"
+          onClick={() => openTab(chrome.runtime.getURL('history.html'))}
+          className="font-medium text-zinc-300 transition hover:text-zinc-50"
+        >
+          Open dashboard →
+        </button>
       </footer>
     </div>
   )
