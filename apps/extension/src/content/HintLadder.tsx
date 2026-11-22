@@ -49,6 +49,9 @@ export default function HintLadder({ pending, problem, onSendWithHint, onSendAsI
     if (!visible) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Only real keypresses. The Enter we dispatch to send on ChatGPT is synthetic, and this
+      // listener can outlive the overlay by a frame (effect cleanup runs after paint).
+      if (!event.isTrusted) return
       if (event.key === 'Escape') {
         event.preventDefault()
         event.stopPropagation()

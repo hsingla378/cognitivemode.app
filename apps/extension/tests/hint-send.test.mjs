@@ -81,6 +81,13 @@ test('hint ladder has no timers or minimum lengths', () => {
   assert.match(source, /'Escape'/)
 })
 
+test('hint ladder ignores synthetic key events', () => {
+  // Live bug: the closing overlay's window listener swallowed the synthetic Enter that sends on
+  // ChatGPT, because React removes effect listeners only after paint.
+  const source = readFileSync(new URL('../src/content/HintLadder.tsx', import.meta.url), 'utf8')
+  assert.match(source, /if \(!event\.isTrusted\) return/)
+})
+
 test('hint ladder is fully keyboard operable', () => {
   const source = readFileSync(new URL('../src/content/HintLadder.tsx', import.meta.url), 'utf8')
 
