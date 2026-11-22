@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { platformSelectors, resolvePlatform } from '../src/content/interceptor.ts'
+import { createPendingSubmit, platformSelectors, resolvePlatform } from '../src/content/interceptor.ts'
 
 const manifest = JSON.parse(
   readFileSync(new URL('../manifest.json', import.meta.url), 'utf8'),
@@ -116,22 +116,45 @@ test('interceptor keeps selectors for v0 and Bolt composers', () => {
   assert.match(interceptorSource, /button\[aria-label\*="send" i\]/)
 })
 
-test('pending submit re-resolves the send button after the overlay delay', () => {
-  const createPendingSubmitSource = interceptorSource.match(
-    /function createPendingSubmit[\s\S]*?\n}\n\nconst noopHandle/,
-  )?.[0]
+// Minimal DOM stand-ins for exercising createPendingSubmit in Node.
+function installSubmitFakes(button) {
+  globalThis.KeyboardEvent = class extends Event {
+    constructor(type, init = {}) {
+      super(type, init)
+      this.key = init.key
+    }
+  }
+  globalThis.HTMLButtonElement = class {}
+  globalThis.document = { querySelector: () => button }
+  const events = []
+  const input = { dispatchEvent: (event) => events.push([event.type, event.key]), closest: () => null, parentElement: null }
+  return { input, events }
+}
 
-  assert.ok(createPendingSubmitSource, 'Expected createPendingSubmit implementation')
-  assert.doesNotMatch(
-    createPendingSubmitSource,
-    /const sendButton = findSendButton\(input, buttonSelector\)\n\n\s*return \{/,
-  )
-  assert.match(
-    createPendingSubmitSource,
-    /trigger:\s*\(\) => \{\s*const sendButton = findSendButton\(input, buttonSelector\)/,
-  )
-  assert.match(createPendingSubmitSource, /sendButton\.isConnected/)
-  assert.match(createPendingSubmitSource, /isVisible\(sendButton\)/)
+test('ChatGPT sends with Enter so it clears its saved draft', () => {
+  // Live test: a programmatic Send click left the sent prompt restored in ChatGPT's home composer.
+  const button = { isConnected: true, click: () => assert.fail('must not click Send on ChatGPT') }
+  const { input, events } = installSubmitFakes(button)
+
+  createPendingSubmit(input, platformSelectors['chatgpt.com']).trigger()
+
+  assert.deepEqual(events, [['keydown', 'Enter']])
+})
+
+test('other sites click the send button resolved at send time', () => {
+  const clicks = []
+  const button = {
+    isConnected: true,
+    click: () => clicks.push('click'),
+    getBoundingClientRect: () => ({ width: 24, height: 24 }),
+    getAttribute: () => null,
+  }
+  const { input, events } = installSubmitFakes(button)
+
+  createPendingSubmit(input, platformSelectors['claude.ai']).trigger()
+
+  assert.deepEqual(clicks, ['click'])
+  assert.deepEqual(events, [])
 })
 
 test('interceptor always relocks after replaying a pending submit', () => {

@@ -6,6 +6,8 @@ export interface PlatformSelectors {
   button: string
   /** Chat AIs offer the practice hint ladder; app builders (v0, Bolt) only get Everyday mode. */
   hintLadder?: boolean
+  /** How to send after the overlay: click the send button (default) or press Enter in the composer. */
+  submitWith?: 'click' | 'enter'
 }
 
 const v0Selectors: PlatformSelectors = {
@@ -17,6 +19,8 @@ const v0Selectors: PlatformSelectors = {
 export const platformSelectors: Record<string, PlatformSelectors> = {
   'chatgpt.com': {
     hintLadder: true,
+    // A programmatic Send click left the sent prompt restored as ChatGPT's home draft; Enter doesn't.
+    submitWith: 'enter',
     // ChatGPT replaced #prompt-textarea with a ProseMirror editor and dropped the send button's test id.
     input: 'form div.ProseMirror[contenteditable="true"], #prompt-textarea',
     button:
@@ -132,14 +136,12 @@ function isSendDisabled(button: HTMLElement): boolean {
   return button.getAttribute('aria-disabled') === 'true'
 }
 
-function createPendingSubmit(
-  input: HTMLElement,
-  buttonSelector: string,
-): PendingSubmit {
+export function createPendingSubmit(input: HTMLElement, platform: PlatformSelectors): PendingSubmit {
   return {
     input,
     trigger: () => {
-      const sendButton = findSendButton(input, buttonSelector)
+      // The send button is looked up again at send time: the page may have re-rendered it.
+      const sendButton = platform.submitWith === 'enter' ? null : findSendButton(input, platform.button)
 
       if (sendButton && sendButton.isConnected && isVisible(sendButton) && !isSendDisabled(sendButton)) {
         sendButton.click()
@@ -215,7 +217,7 @@ export function initInterceptor(
 
     event.preventDefault()
     event.stopImmediatePropagation()
-    intercept(createPendingSubmit(input, buttonSelector))
+    intercept(createPendingSubmit(input, platform))
   }
 
   const handleSendClick = (event: MouseEvent) => {
@@ -235,7 +237,7 @@ export function initInterceptor(
 
     event.preventDefault()
     event.stopImmediatePropagation()
-    intercept(createPendingSubmit(input, buttonSelector))
+    intercept(createPendingSubmit(input, platform))
   }
 
   document.addEventListener('keydown', handleKeyDown, true)
