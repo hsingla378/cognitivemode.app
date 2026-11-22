@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 export const metadata: Metadata = {
   title: "Privacy Policy | Cognitive Mode",
   description:
-    "Cognitive Mode operates 100% locally. No data is transmitted to external servers, sold, or tracked via third-party analytics.",
+    "Cognitive Mode stores your practice data only on your device. Nothing is sent to Cognitive Mode servers, sold, or tracked via third-party analytics.",
 };
 
 const SECTIONS = [
@@ -14,15 +14,15 @@ const SECTIONS = [
     body: (
       <>
         <p>
-          Cognitive Mode operates 100% locally. All data, including cognitive
-          logs, hypotheses, and settings, are stored exclusively on your device
-          using Chrome&apos;s local storage API. No data is transmitted to
-          external servers, sold, or tracked via third-party analytics.
+          Cognitive Mode operates 100% locally. Your practice sessions, notes,
+          and settings are stored exclusively on your device using
+          Chrome&apos;s local storage API. No data is transmitted to Cognitive
+          Mode servers, sold, or tracked via third-party analytics.
         </p>
         <p>
           The extension does not connect to any backend service operated by
-          Cognitive Mode. There are no user accounts, no cloud sync, and no
-          remote databases.
+          Cognitive Mode. There are no user accounts, no cloud sync, no API keys,
+          and no remote databases.
         </p>
       </>
     ),
@@ -40,10 +40,18 @@ const SECTIONS = [
           :
         </p>
         <ul className="list-inside list-disc space-y-1.5 pl-1">
-          <li>Extension preferences and configuration settings</li>
-          <li>Cognitive logs and session history you generate while using the extension</li>
-          <li>Hypotheses and notes you enter before interacting with AI tools</li>
-          <li>Per-site friction rules and delay settings</li>
+          <li>
+            Practice sessions: the problem&apos;s title, link, number, difficulty
+            and topics, time spent, hint levels you chose, submit clicks, and
+            the result you logged
+          </li>
+          <li>Re-solve dates for problems you needed help on</li>
+          <li>
+            A short excerpt of the problem statement, used only to give your AI
+            context when you ask for a hint
+          </li>
+          <li>Approach notes you type into the hint ladder</li>
+          <li>Settings, and notes you wrote in Everyday mode</li>
         </ul>
         <p>
           This data remains on your device until you uninstall the extension or
@@ -69,11 +77,17 @@ const SECTIONS = [
     body: (
       <>
         <p>
-          Cognitive Mode requests only the browser permissions required to
-          function. These permissions are used locally on your device to
-          intercept and add friction to AI tool interactions on supported sites.
-          Permission access does not result in data being transmitted off your
-          device.
+          Cognitive Mode requests only the browser permissions it needs. Access
+          to LeetCode, GeeksforGeeks and takeUforward lets it notice which
+          problem you are practicing. Access to ChatGPT, Claude, Gemini,
+          Perplexity, DeepSeek, v0 and Bolt lets it offer hint levels when you
+          send a message. Storage keeps your data on your device, and alarms
+          refresh the re-solve count on the toolbar icon once an hour.
+        </p>
+        <p>
+          When you choose a hint level, the extension adds a short, visible
+          instruction to the message you are about to send. That message goes
+          to the AI service you chose, exactly as if you had typed it yourself.
         </p>
       </>
     ),
@@ -96,11 +110,8 @@ const SECTIONS = [
     body: (
       <ul className="list-inside list-disc space-y-1.5 pl-1">
         <li>
-          You can review and delete stored data at any time through the
-          extension&apos;s settings or by clearing extension storage in{" "}
-          <code className="rounded bg-[rgba(255,255,255,0.06)] px-1.5 py-0.5 font-mono text-[0.85em] text-foreground">
-            chrome://extensions
-          </code>
+          You can review everything that is stored in the extension&apos;s
+          dashboard (practice log, re-solve queue, topics, and notes)
         </li>
         <li>
           Uninstalling the extension removes all locally stored Cognitive Mode
@@ -128,14 +139,12 @@ const SECTIONS = [
     title: "Contact",
     body: (
       <p>
-        Questions about this privacy policy can be directed via the{" "}
+        Questions about this privacy policy can be sent to{" "}
         <a
-          href="https://github.com/hsingla378/cognitivemode/issues"
-          target="_blank"
-          rel="noreferrer"
+          href="mailto:hsingla378@gmail.com"
           className="text-emerald-300/80 underline-offset-4 transition hover:text-emerald-200 hover:underline"
         >
-          GitHub issue tracker
+          hsingla378@gmail.com
         </a>
         .
       </p>
@@ -165,7 +174,7 @@ export default function PrivacyPage() {
               Privacy Policy
             </h1>
             <p className="text-sm text-muted">
-              Last updated: June 23, 2026
+              Last updated: November 22, 2026
             </p>
           </div>
 
@@ -196,10 +205,10 @@ export default function PrivacyPage() {
             Summary
           </p>
           <p className="mt-3 text-sm leading-relaxed text-emerald-100/90">
-            Cognitive Mode operates 100% locally. All data, including cognitive
-            logs, hypotheses, and settings, are stored exclusively on your device
-            using Chrome&apos;s local storage API. No data is transmitted to
-            external servers, sold, or tracked via third-party analytics.
+            Cognitive Mode operates 100% locally. Practice sessions, hint levels,
+            notes, and settings are stored exclusively on your device using
+            Chrome&apos;s local storage API. No data is transmitted to Cognitive
+            Mode servers, sold, or tracked via third-party analytics.
           </p>
         </div>
       </article>

@@ -18,18 +18,18 @@ export default function Footer() {
             cognitivemode
           </span>
           <p className="font-mono text-[10px] text-muted/50">
-            © {new Date().getFullYear()} · Think before you prompt.
+            © {new Date().getFullYear()} · Practice with AI. Think for yourself.
           </p>
         </div>
 
         {/* Right: links */}
         <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
-          <a
-            href="#extension-simulator"
+          <Link
+            href="/#demo"
             className="font-mono text-[11px] text-muted/60 transition hover:text-foreground"
           >
             Try Demo
-          </a>
+          </Link>
           <span className="h-3 w-px bg-[--color-border]" />
           <Link
             href="/privacy"

@@ -1,24 +1,29 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const TITLE = "Cognitive Mode | Practice DSA with AI hints, not answers";
+const DESCRIPTION =
+  "A free Chrome extension for LeetCode, GeeksforGeeks and takeUforward practice. When you ask ChatGPT, Claude or Gemini for help, choose a nudge, the approach, an outline or the full solution, then re-solve what you needed help on. No API key, nothing leaves your browser.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://cognitivemode.app"),
   applicationName: "Cognitive Mode",
   authors: [{ name: "Himanshu Singla", url: "https://github.com/hsingla378" }],
   creator: "Himanshu Singla",
   publisher: "Cognitive Mode",
-  title: "Cognitive Mode | Reclaim Your Problem-Solving Brain",
-  description:
-    "A local-first browser extension designed to introduce intentional friction into your AI workflows. Stop mindless copy-pasting; force your brain to articulate hypotheses before offloading code to LLMs.",
+  title: TITLE,
+  description: DESCRIPTION,
   keywords: [
+    "LeetCode hints",
+    "DSA practice",
+    "coding interview prep",
+    "ChatGPT for LeetCode",
+    "Striver A2Z sheet",
+    "GeeksforGeeks practice",
+    "spaced repetition",
     "browser extension",
-    "developer productivity",
-    "cognitive friction",
-    "local-first tool",
-    "AI dependency",
-    "software engineering habits",
   ],
-  category: "technology",
+  category: "education",
   alternates: {
     canonical: "/",
   },
@@ -31,28 +36,18 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/icon-128.png", sizes: "128x128" }],
   },
+  // og:image comes from app/opengraph-image.tsx.
   openGraph: {
-    title: "Cognitive Mode | Reclaim Your Problem-Solving Brain",
-    description:
-      "A local-first browser extension designed to introduce intentional friction into your AI workflows. Stop mindless copy-pasting; force your brain to articulate hypotheses before offloading code to LLMs.",
+    title: TITLE,
+    description: DESCRIPTION,
     url: "https://cognitivemode.app",
     siteName: "Cognitive Mode",
     type: "website",
-    images: [
-      {
-        url: "https://cognitivemode.app/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Cognitive Mode browser extension preview",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cognitive Mode | Reclaim Your Problem-Solving Brain",
-    description:
-      "A local-first browser extension designed to introduce intentional friction into your AI workflows. Stop mindless copy-pasting; force your brain to articulate hypotheses before offloading code to LLMs.",
-    images: ["https://cognitivemode.app/og-image.png"],
+    title: TITLE,
+    description: DESCRIPTION,
   },
 };
 
@@ -60,12 +55,12 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Cognitive Mode",
-  applicationCategory: "BrowserApplication",
+  applicationCategory: "EducationalApplication",
   operatingSystem: "Chrome",
   url: "https://cognitivemode.app",
   image: "https://cognitivemode.app/icon-128.png",
   description:
-    "A local-first Chrome extension that adds intentional friction before AI prompts so developers articulate hypotheses first.",
+    "A free, local-only Chrome extension that turns ChatGPT, Claude and Gemini into a hint ladder while you practice LeetCode, GeeksforGeeks and takeUforward problems, and schedules re-solves for problems you needed help on.",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -86,7 +81,7 @@ export default function RootLayout({
       >
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
         />
         {children}
       </body>

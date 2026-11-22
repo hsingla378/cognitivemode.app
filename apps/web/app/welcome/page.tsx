@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExternalLink, Pin, Puzzle, Zap } from "lucide-react";
+import { Code, ExternalLink, MessageSquare, Pin } from "lucide-react";
 import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
   title: "Welcome | Cognitive Mode",
   description:
-    "Your Cognitive Mode extension is installed. Pin it to your toolbar and open ChatGPT or Bolt.new for your first intentional speedbump.",
+    "Cognitive Mode is installed. Pin it, open a problem on LeetCode, GeeksforGeeks or takeUforward, and pick a hint level the next time you ask AI for help.",
 };
 
 const STEPS = [
   {
     step: "01",
-    icon: Puzzle,
-    title: "Open the extensions menu",
+    icon: Pin,
+    title: "Pin Cognitive Mode",
     description:
-      "Click the puzzle icon in Chrome's toolbar to see your installed extensions.",
+      "Click the puzzle icon in Chrome's toolbar and pin Cognitive Mode. Its badge shows how many re-solves are due today.",
     border: "border-emerald-400/25",
     iconColor: "text-emerald-300",
     glow: "shadow-[0_0_32px_rgba(52,211,153,0.12)]",
@@ -23,10 +23,10 @@ const STEPS = [
   },
   {
     step: "02",
-    icon: Pin,
-    title: "Pin Cognitive Mode",
+    icon: Code,
+    title: "Open a problem",
     description:
-      "Find Cognitive Mode in the list and pin it so it stays visible on your toolbar.",
+      "Any problem on LeetCode, GeeksforGeeks or takeUforward. A small practice timer appears in the bottom-left corner.",
     border: "border-amber-400/25",
     iconColor: "text-amber-300",
     glow: "shadow-[0_0_32px_rgba(251,191,36,0.1)]",
@@ -34,10 +34,10 @@ const STEPS = [
   },
   {
     step: "03",
-    icon: Zap,
-    title: "Trigger your first speedbump",
+    icon: MessageSquare,
+    title: "Ask your AI, pick a hint level",
     description:
-      "Open ChatGPT or Bolt.new and try to offload a problem — feel the intentional friction kick in.",
+      "Ask ChatGPT, Claude, Gemini, Perplexity or DeepSeek as usual, then choose a nudge, the approach, an outline or the full solution.",
     border: "border-blue-400/25",
     iconColor: "text-blue-300",
     glow: "shadow-[0_0_32px_rgba(96,165,250,0.1)]",
@@ -70,27 +70,25 @@ export default function WelcomePage() {
 
         <div className="space-y-6">
           <h1 className="max-w-4xl font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.25rem] lg:leading-[1.1]">
-            Installation Complete.
+            You&apos;re set up.
             <br />
             <span className="bg-gradient-to-r from-emerald-200 via-foreground to-emerald-200 bg-clip-text text-transparent">
-              Time to reclaim your brain.
+              Now practice for real.
             </span>
           </h1>
           <p className="max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-            Cognitive Mode is live in your browser. Three quick steps and
-            you&apos;ll feel the difference the next time you reach for an AI
-            shortcut.
+            Three steps, then keep practicing exactly the way you do now. Cognitive
+            Mode only steps in when you ask an AI about the problem you&apos;re on.
           </p>
         </div>
 
-        {/* 3-step guide */}
         <div className="w-full space-y-8">
           <div className="flex flex-col gap-2 sm:items-start">
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
               get started
             </p>
             <h2 className="font-mono text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-              Three steps. One habit shift.
+              Three steps. No setup beyond this.
             </h2>
           </div>
 
@@ -138,28 +136,27 @@ export default function WelcomePage() {
           </ol>
         </div>
 
-        {/* CTAs */}
         <div className="flex w-full flex-col items-center gap-4 sm:items-start">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted/70">
             ready when you are
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
             <a
-              href="https://chatgpt.com"
+              href="https://leetcode.com/problems/two-sum/"
               target="_blank"
               rel="noreferrer"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-emerald-400/60 bg-[rgba(16,185,129,0.08)] px-6 text-sm font-medium text-foreground shadow-[0_0_24px_rgba(16,185,129,0.35)] backdrop-blur-md transition hover:border-emerald-300 hover:bg-[rgba(16,185,129,0.15)]"
             >
-              Open ChatGPT
+              Try it on Two Sum
               <ExternalLink className="h-3.5 w-3.5 opacity-70" aria-hidden />
             </a>
             <a
-              href="https://bolt.new"
+              href="https://takeuforward.org/prep-hub/strivers-a2z-dsa-sheet"
               target="_blank"
               rel="noreferrer"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-border/80 bg-[rgba(24,24,27,0.85)] px-6 text-sm font-medium text-muted transition hover:border-foreground/70 hover:text-foreground"
             >
-              Open Bolt.new
+              Striver&apos;s A2Z sheet
               <ExternalLink className="h-3.5 w-3.5 opacity-70" aria-hidden />
             </a>
             <Link
@@ -170,7 +167,7 @@ export default function WelcomePage() {
             </Link>
           </div>
           <p className="text-[11px] text-muted/80">
-            100% Local. Zero Servers. Your thoughts stay yours.
+            Free. No API key. Nothing leaves your browser.
           </p>
         </div>
       </section>

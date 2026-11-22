@@ -2,17 +2,17 @@
 
 Landing page and interactive product demo for [cognitivemode.app](https://cognitivemode.app).
 
-This app is intentionally static and local-first in its messaging: it explains the problem, lets visitors feel the Hypothesis Gate through a browser-window simulator, and points them to the published [Chrome Web Store listing](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh).
+This app is intentionally static and local-first in its messaging: it explains the practice problem, lets visitors try the hint ladder in an interactive demo, and points them to the published [Chrome Web Store listing](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh).
 
 <!-- > Built with AI-assisted vibe coding, with the source kept explicit so the process is honest and inspectable. -->
 
 ## What This App Includes
 
-- A high-contrast hero for the Cognitive Mode product narrative.
-- A reactive install CTA that changes when the extension injects its local presence meta tag.
-- An interactive extension simulator that reproduces the pause, timer, and two-field hypothesis gate.
-- Feature and privacy sections focused on the zero-backend extension architecture.
-- App Router metadata for title, description, keywords, Open Graph, and Twitter previews.
+- A hero for the practice promise, with a reactive install CTA that changes when the extension injects its presence meta tag.
+- An interactive hint-ladder demo (3Sum in a mock ChatGPT frame).
+- How-it-works, why-it-works, comparison, and FAQ sections. The FAQ also emits `FAQPage` JSON-LD for search and answer engines.
+- A generated Open Graph image (`app/opengraph-image.tsx`) plus App Router metadata.
+- Welcome, privacy, and uninstall-feedback pages.
 
 ## Local Development
 

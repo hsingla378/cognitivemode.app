@@ -12,10 +12,10 @@ test("goodbye page exists at /goodbye", () => {
 test("goodbye page asks for uninstall feedback reasons", () => {
   const formSource = readFileSync(formUrl, "utf8");
 
-  assert.match(formSource, /Too much friction\?/);
-  assert.match(formSource, /Buggy\?/);
-  assert.match(formSource, /Didn.t work on my AI tool/);
-  assert.match(formSource, /Missing controls/);
+  assert.match(formSource, /Didn.t work on my practice site/);
+  assert.match(formSource, /Hint ladder got in the way/);
+  assert.match(formSource, /Buggy/);
+  assert.match(formSource, /Missing a feature/);
 });
 
 test("goodbye feedback opens a prefilled Gmail compose to the owner", () => {

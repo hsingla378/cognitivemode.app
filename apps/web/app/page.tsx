@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
-import ExtensionSimulator from "./components/ExtensionSimulator";
+import Comparison from "./components/Comparison";
+import Faq from "./components/Faq";
 import FeatureGrid from "./components/FeatureGrid";
 import Footer from "./components/Footer";
+import HintLadderDemo from "./components/HintLadderDemo";
+import HowItWorks from "./components/HowItWorks";
 
 const EXTENSION_META_SELECTOR =
   'meta[name="cognitivemode-extension"][content="installed"]';
@@ -15,6 +18,11 @@ const CHROME_WEB_STORE_URL =
   "https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh";
 
 type ExtensionInstallState = "checking" | "installed" | "missing";
+
+const SUPPORTED = {
+  practice: ["LeetCode", "GeeksforGeeks", "takeUforward"],
+  ai: ["ChatGPT", "Claude", "Gemini", "Perplexity", "DeepSeek"],
+};
 
 function isExtensionInstalled(): boolean {
   if (typeof document === "undefined") return false;
@@ -70,24 +78,22 @@ export default function Home() {
                 priority
                 className="h-4.5 w-4.5 rounded-[5px]"
               />
-              cognitive&nbsp;mode:{" "}
-              <span className="font-semibold text-foreground">on</span>
+              cognitive&nbsp;mode · free chrome extension
             </>
           )}
         </div>
 
         <div className="space-y-6">
           <h1 className="max-w-3xl font-mono text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-            Your AI is doing the thinking.
+            Practice DSA with AI,
             <br />
-            <span className="text-muted">
-              You&apos;re just doing the typing.
-            </span>
+            <span className="text-muted">without cheating yourself.</span>
           </h1>
           <p className="max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-            Break the cycle of mindless prompt-engineering. Introduce intentional
-            friction into your development workflow to rebuild your cognitive
-            problem-solving muscles.
+            Cognitive Mode turns ChatGPT, Claude and Gemini into a hint ladder
+            while you solve LeetCode, GeeksforGeeks and takeUforward problems,
+            then brings back the ones you needed help on. Free. No API key.
+            Nothing leaves your browser.
           </p>
         </div>
 
@@ -115,22 +121,19 @@ export default function Home() {
                   Extension installed
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-emerald-200/70">
-                  Pin Cognitive Mode to your toolbar to open your Knowledge Base
-                  and stats.
+                  Pin Cognitive Mode to your toolbar to see your re-solve queue
+                  and stats, then open a problem to start.
                 </p>
               </div>
               <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                 <a
-                  href="https://chatgpt.com"
+                  href="https://leetcode.com/problemset/"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-emerald-400/60 bg-[rgba(16,185,129,0.08)] px-6 text-sm font-medium text-foreground shadow-[0_0_24px_rgba(16,185,129,0.35)] backdrop-blur-md transition hover:border-emerald-300 hover:bg-[rgba(16,185,129,0.15)]"
                 >
-                  Open ChatGPT
-                  <ExternalLink
-                    className="h-3.5 w-3.5 opacity-70"
-                    aria-hidden
-                  />
+                  Open a LeetCode problem
+                  <ExternalLink className="h-3.5 w-3.5 opacity-70" aria-hidden />
                 </a>
                 <Link
                   href="/welcome"
@@ -151,22 +154,32 @@ export default function Home() {
                 Add to Chrome — It&apos;s Free
               </a>
               <a
-                href="#extension-simulator"
+                href="#demo"
                 className="inline-flex h-11 items-center justify-center rounded-full border border-border/80 bg-[rgba(24,24,27,0.85)] px-5 text-sm font-medium text-muted transition hover:border-foreground/70 hover:text-foreground"
               >
-                Try the friction demo
+                See the hint ladder
               </a>
             </div>
           ) : null}
         </div>
 
-        <p className="text-[11px] text-muted/80">
-          100% Local. Zero Servers. Your thoughts stay yours.
-        </p>
+        <dl className="grid w-full max-w-xl grid-cols-1 gap-3 text-center text-[11px] sm:grid-cols-2 sm:text-left">
+          <div>
+            <dt className="font-mono uppercase tracking-[0.18em] text-muted/70">practice on</dt>
+            <dd className="mt-1 text-foreground/80">{SUPPORTED.practice.join(" · ")}</dd>
+          </div>
+          <div>
+            <dt className="font-mono uppercase tracking-[0.18em] text-muted/70">hints from</dt>
+            <dd className="mt-1 text-foreground/80">{SUPPORTED.ai.join(" · ")}</dd>
+          </div>
+        </dl>
       </section>
 
-      <ExtensionSimulator />
+      <HintLadderDemo />
+      <HowItWorks />
       <FeatureGrid />
+      <Comparison />
+      <Faq />
       <Footer />
     </main>
   );

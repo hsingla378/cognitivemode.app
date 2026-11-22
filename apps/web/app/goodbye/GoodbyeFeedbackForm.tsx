@@ -7,23 +7,23 @@ const FEEDBACK_EMAIL = "hsingla378@gmail.com";
 
 const REASONS = [
   {
-    label: "Too much friction?",
-    value: "Too much friction",
+    label: "Didn't work on my practice site",
+    value: "Practice site not supported",
+    icon: Sparkles,
+  },
+  {
+    label: "Hint ladder got in the way",
+    value: "Hint ladder in the way",
     icon: Gauge,
   },
   {
-    label: "Buggy?",
+    label: "Buggy",
     value: "Buggy",
     icon: Bug,
   },
   {
-    label: "Didn't work on my AI tool",
-    value: "Unsupported tool",
-    icon: Sparkles,
-  },
-  {
-    label: "Missing controls",
-    value: "Missing controls",
+    label: "Missing a feature",
+    value: "Missing a feature",
     icon: Settings2,
   },
 ];
