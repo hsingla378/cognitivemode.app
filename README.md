@@ -2,7 +2,7 @@
 
 [![Available in the Chrome Web Store](https://raw.githubusercontent.com/GoogleChrome/webstore-docs/master/images/ChromeWebStore_BadgeWBorder_v2_206x58.png)](https://chromewebstore.google.com/detail/cognitive-mode/hlflicjdpooonfjaciliblnmhkdmakgh)
 
-Rebuild your problem-solving instinct before you offload to an LLM.
+Practice DSA with AI, without cheating yourself.
 
 <!--
 > [!IMPORTANT]
@@ -12,19 +12,22 @@ Rebuild your problem-solving instinct before you offload to an LLM.
 
 ## Introduction
 
-`cognitivemode-app` is a local-first product designed to introduce intentional friction into AI-assisted workflows.  
-Instead of instant prompting, users are encouraged to pause, articulate hypotheses, and think through attempts before asking AI for help.
+Cognitive Mode is a free, local-first Chrome extension for coding-interview practice. While a problem is open on LeetCode, GeeksforGeeks or takeUforward, asking ChatGPT, Claude, Gemini, Perplexity or DeepSeek for help opens a hint ladder: a nudge, the approach, an outline, or the full solution. The chosen level is appended to the user's own prompt, so their AI gives exactly that much help, with no API key and no backend.
+
+Each attempt ends as solved clean, solved with hints, needed the solution, or didn't solve. Problems that needed help come back after 3, 7 and 21 days for a clean re-solve.
 
 This repository is a monorepo containing:
 - a marketing + onboarding website
-- a browser extension workspace that enforces cognitive guardrails directly on AI tools
+- the browser extension
 
 ## Core Features
 
-- **Intentional speedbumps**: delay loops that break automatic copy-paste behavior
-- **Hypothesis gate**: require users to define what they think and what they tried first
-- **Local-first privacy**: no backend dependency required for core product behavior
-- **Developer-native UX**: high-contrast, minimal interface optimized for focused technical workflows
+- **Hint ladder**: pick how much help each AI answer gives, in the AI chat you already use
+- **Practice tracking**: timer, hint levels used, and one-tap result logging on supported practice sites
+- **Re-solve queue**: spaced re-solves (3/7/21 days) with a due-count badge
+- **Readiness by topic**: clean-solve rate per topic, weekly stats, streak
+- **Local-first privacy**: everything lives in `chrome.storage.local`; no servers, no accounts, no API keys
+- **Everyday mode**: the original think-first gate for any AI prompt, now optional
 
 ## Monorepo Architecture
 
@@ -92,10 +95,7 @@ This rebuilds `apps/extension/dist` and writes a fresh `apps/extension/cognitive
 
 ## Roadmap
 
-- **Web Base**: Landing page, core product narrative, interactive extension simulator UX, privacy policy, and welcome/onboarding pages are in place.
-- **Extension Engine**: Manifest V3 wrapper, DOM content scripts, friction overlay, daily bypass, popup dashboard, local storage, full history page, and install hook are in place.
-- **Chrome Web Store**: Extension published natively to the Chrome Web Store.
-- **Launch Prep**: Finalize Chrome Web Store listing copy, screenshots, custom store assets, and community launch materials.
-- **Post-Launch Features**:
-  - Engineer a client-side analytics dashboard utilizing IndexedDB for local cognitive logs.
-  - Expand targeted selectors for additional AI engineering interfaces.
+- **Shipped (0.3.0)**: practice mode on LeetCode, GeeksforGeeks and takeUforward; hint ladder in ChatGPT, Claude, Gemini, Perplexity and DeepSeek; re-solve queue, topic readiness, dashboard.
+- **Next**: Codeforces and Code360 adapters, verdict detection after Submit, shareable weekly card.
+
+Design and plan: [`docs/superpowers/specs/2026-11-22-practice-mode-design.md`](docs/superpowers/specs/2026-11-22-practice-mode-design.md) and [`docs/superpowers/plans/2026-11-22-practice-mode.md`](docs/superpowers/plans/2026-11-22-practice-mode.md). Store copy: [`docs/store-listing.md`](docs/store-listing.md).
